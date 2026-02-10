@@ -1,7 +1,6 @@
-import { useState } from "react";
-import { Minus, Plus } from "lucide-react";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
+import { Minus, Plus } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -10,46 +9,51 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import { useState } from "react";
+import { useCartStore, type CartItem } from "@/stores/cart-store";
 
-export default function CheckoutItemCard() {
+export default function CheckoutItemCard({ item }: { item: CartItem }) {
+  const { increaseQuantity, decreaseQuantity, removeFromCart } = useCartStore();
   const [open, setOpen] = useState(false);
 
   return (
     <Card className="p-1">
       <CardContent className="p-1 text-sm">
-        {/* FIRST DIV */}
         <div
-          onClick={() => setOpen(true)}
+          onClick={() => setOpen(!open)}
           className="flex justify-between items-center gap-1 cursor-pointer"
         >
           <div>
-            <h1>Mini Do Choco 40g</h1>
-            <p>40g | 50 pcs</p>
+            <h1>{item.product_name}</h1>
+            <p>
+              {item.unit} | {item.cart_qty} pcs
+            </p>
           </div>
 
           <div
             className="flex items-center justify-center gap-1"
-            onClick={(e) => e.stopPropagation()} // prevent accidental re-triggers
+            onClick={(e) => e.stopPropagation()}
           >
             <Button
               className="rounded-full"
               size={"icon-xs"}
               variant={"outline"}
+              onClick={() => decreaseQuantity(item.cart_id)}
             >
               <Minus />
             </Button>
-            <p>1</p>
+            <p>{item.cart_qty}</p>
             <Button
               className="rounded-full"
               size={"icon-xs"}
               variant={"outline"}
+              onClick={() => increaseQuantity(item.cart_id)}
             >
               <Plus />
             </Button>
           </div>
         </div>
 
-        {/* SECOND DIV */}
         {open && (
           <div className="mt-2">
             <Table className="text-center">
@@ -60,9 +64,9 @@ export default function CheckoutItemCard() {
               </TableHeader>
               <TableBody>
                 <TableRow>
-                  <TableCell>₱33</TableCell>
-                  <TableCell>₱100</TableCell>
-                  <TableCell>₱300</TableCell>
+                  <TableCell>₱{item.price}</TableCell>
+                  <TableCell>{item.cart_qty}</TableCell>
+                  <TableCell>₱{item.price * item.cart_qty}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>

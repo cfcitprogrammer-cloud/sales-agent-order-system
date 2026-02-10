@@ -2,6 +2,7 @@ import { LogOut, ReceiptText, Settings, ShoppingBag } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import { Button } from "../ui/button";
 import Avatar from "boring-avatars";
+import NavUser from "./nav-user";
 
 export default function NavbarComponent() {
   return (
@@ -27,7 +28,7 @@ export default function NavbarComponent() {
         <Button size={"icon-sm"} className="rounded-full" variant={"outline"}>
           <Settings />
         </Button>
-        <Avatar name="Eli Romero" size={32} />
+        <NavUser />
       </div>
     </header>
   );

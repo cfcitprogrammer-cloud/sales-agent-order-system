@@ -1,7 +1,6 @@
 import { CheckoutDrawer } from "@/components/custom/checkout-drawer";
-import ProductCard from "@/components/custom/product-card";
+import ProductList from "@/components/custom/products-list";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   InputGroup,
   InputGroupAddon,
@@ -36,8 +35,8 @@ export default function ProductsTab() {
       </header>
 
       <section>
-        <div className="grid grid-cols-6">
-          <ProductCard />
+        <div>
+          <ProductList />
         </div>
       </section>
     </main>
