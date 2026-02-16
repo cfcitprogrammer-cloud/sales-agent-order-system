@@ -8,10 +8,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuthStore } from "@/stores/auth-store";
 
 export default function NavUser() {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
 
   return (
     <DropdownMenu>

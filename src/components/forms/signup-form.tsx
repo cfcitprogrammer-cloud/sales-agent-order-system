@@ -15,7 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { signupSchema, type SignupFormValues } from "@/db/schema/signup-schema";
 import { Spinner } from "../ui/spinner";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "sonner";
 
 export function SignupForm({
@@ -30,20 +30,18 @@ export function SignupForm({
     resolver: zodResolver(signupSchema),
   });
 
-  const { register: signup } = useAuth();
+  const { register: signup } = useAuthStore();
   const navigate = useNavigate();
 
   async function onSubmit(values: SignupFormValues) {
     try {
-      const data = await signup({
+      signup({
         email: values.email,
         password: values.password,
         name: values.name,
-      });
-
-      if (data) {
+      }).then(() => {
         navigate("/login?recentlyRegistered=true", { replace: true });
-      }
+      });
     } catch (error: any) {
       toast.error(error?.message || "Unexpected error occurred");
     }

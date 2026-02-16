@@ -20,12 +20,18 @@ export function generateCartId(): string {
 
   const dateTime = `${mm}${dd}${yy}${hh}${min}${ss}`;
 
-  // Random 4 lowercase letters
-  const letters = "abcdefghijklmnopqrstuvwxyz";
-  let randomChars = "";
-  for (let i = 0; i < 4; i++) {
-    randomChars += letters[Math.floor(Math.random() * letters.length)];
-  }
+  return `#${dateTime}`;
+}
 
-  return `${dateTime}${randomChars}`;
+export function formatDateTime(date = new Date()) {
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  })
+    .format(date)
+    .replace(",", "");
 }

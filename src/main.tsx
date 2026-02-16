@@ -4,11 +4,14 @@ import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 import App from "./App.tsx";
 import { Toaster } from "sonner";
+import { TooltipProvider } from "./components/ui/tooltip.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter basename="/sales-agent-order-system/">
-      <App />
+      <TooltipProvider>
+        <App />
+      </TooltipProvider>
       <Toaster />
     </BrowserRouter>
   </StrictMode>,

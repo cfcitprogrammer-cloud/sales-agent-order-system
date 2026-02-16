@@ -12,13 +12,14 @@ import {
 import { EyeOff, Printer, ShoppingBasket, X } from "lucide-react";
 import CheckoutItemCard from "./checkout-item-card";
 import { Separator } from "../ui/separator";
-import CustomerInfoForm from "../forms/customer-info-form";
-import type { CustomerInfo } from "@/db/types/customer-info";
-import OrderConfirmation from "./order-confirmation";
-import { useState } from "react";
+import { useCartStore } from "@/stores/cart-store";
+import { formatDateTime, generateCartId } from "@/lib/utils";
+import { Link } from "react-router-dom";
+import CustomAlertDialog from "./dialogs/alert-dialog";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 export function CheckoutDrawer() {
-  const [step, setStep] = useState<0 | 1 | 2>(0);
+  const { cart, totalPrice, clearCart } = useCartStore();
 
   return (
     <Drawer direction="right">
@@ -29,46 +30,23 @@ export function CheckoutDrawer() {
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="flex flex-row items-center justify-between gap-1 flex-wrap">
-          <DrawerTitle>Order #123434</DrawerTitle>
-          <DrawerDescription>08 Oct 2025, 12:44 PM</DrawerDescription>
+          <DrawerTitle>Order {generateCartId()}</DrawerTitle>
+          <DrawerDescription>{formatDateTime()}</DrawerDescription>
         </DrawerHeader>
         <div className="overflow-hidden w-full">
-          <div
-            className={`w-[300%] flex -translate-x-${step}/3 overflow-hidden`}
-          >
-            <div className="px-4 w-1/3">
-              <div className="flex items-center justify-between gap-1">
-                <p>Your Cart</p>
+          <div>
+            <div className="px-4">
+              <div className="flex items-center justify-between gap-1 mb-2">
+                <p className="text-sm font-semibold">Your Cart</p>
 
-                <p>Total: 4</p>
+                <p className="text-xs">Total: {cart.length}</p>
               </div>
-              <div className="no-scrollbar overflow-y-auto">
-                {/* <CheckoutItemCard /> */}
+
+              <div className="no-scrollbar overflow-y-auto space-y-2">
+                {cart.map((item) => (
+                  <CheckoutItemCard item={item} />
+                ))}
               </div>
-            </div>
-
-            <div className="px-4 w-1/3">
-              <CustomerInfoForm
-                onBack={function (): void {
-                  setStep(1);
-                }}
-                onConfirm={function (info: CustomerInfo): void {
-                  throw new Error("Function not implemented.");
-                }}
-              />
-            </div>
-
-            <div className="w-1/3">
-              <OrderConfirmation
-                customer={{
-                  name: "",
-                  phone: "",
-                  address: "",
-                }}
-                onClose={function (): void {
-                  throw new Error("Function not implemented.");
-                }}
-              />
             </div>
           </div>
         </div>
@@ -78,15 +56,19 @@ export function CheckoutDrawer() {
             <h2 className="font-semibold">Payment Summary</h2>
             <div className="flex justify-between items-center gap-1">
               <p className="text-gray-500">Sub Total</p>
-              <p>$267</p>
+              <p>₱{totalPrice()}</p>
             </div>
           </div>
 
           <div className="flex justify-between items-center gap-1 font-semibold text-sm">
             <p>Amount to be Paid</p>
-            <p>$267</p>
+            <p>₱{totalPrice()}</p>
           </div>
-          <Button size={"sm"}>Place Order</Button>
+          <Link to={"/checkout"}>
+            <Button className="w-full" size={"sm"}>
+              Place Order
+            </Button>
+          </Link>
 
           <div className="flex gap-1">
             <DrawerClose asChild className="flex-1">
@@ -95,9 +77,13 @@ export function CheckoutDrawer() {
               </Button>
             </DrawerClose>
 
-            <Button variant="outline" size={"sm"} className="flex-1">
-              <X /> Void Order
-            </Button>
+            <CustomAlertDialog
+              buttonText={"Void Order"}
+              icon={<X />}
+              handler={() => {
+                clearCart();
+              }}
+            />
 
             <Button variant="outline" size={"sm"} className="flex-1">
               <Printer /> Print

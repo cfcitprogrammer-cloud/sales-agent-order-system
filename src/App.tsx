@@ -3,11 +3,13 @@ import { Route, Routes } from "react-router-dom";
 import IndexPage from "./pages";
 import LoginPage from "./pages/auth/login";
 import RegisterPage from "./pages/auth/register";
+import CheckoutPage from "./pages/checkout";
 
 function App() {
   return (
     <Routes>
       <Route element={<IndexPage />} path="/" />
+      <Route element={<CheckoutPage />} path="/checkout" />
       <Route element={<LoginPage />} path="/login" />
       <Route element={<RegisterPage />} path="/register" />
     </Routes>

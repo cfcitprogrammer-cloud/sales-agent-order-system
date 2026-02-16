@@ -21,20 +21,29 @@ export default function CheckoutItemCard({ item }: { item: CartItem }) {
       <CardContent className="p-1 text-sm">
         <div
           onClick={() => setOpen(!open)}
-          className="flex justify-between items-center gap-1 cursor-pointer"
+          className="flex items-start cursor-pointer gap-2"
         >
+          <figure className="w-12 h-12 overflow-hidden rounded-lg">
+            <img
+              src={item.img_src || ""}
+              alt={item.product_name}
+              className="w-full h-full object-cover object-center text-xs"
+            />
+          </figure>
+
           <div>
-            <h1>{item.product_name}</h1>
-            <p>
+            <h1 className="text-xs font-semibold">{item.product_name}</h1>
+            <p className="text-xs">
               {item.unit} | {item.cart_qty} pcs
             </p>
           </div>
 
           <div
-            className="flex items-center justify-center gap-1"
+            className="flex items-center justify-center gap-1 ml-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <Button
+              type="button"
               className="rounded-full"
               size={"icon-xs"}
               variant={"outline"}
@@ -44,6 +53,7 @@ export default function CheckoutItemCard({ item }: { item: CartItem }) {
             </Button>
             <p>{item.cart_qty}</p>
             <Button
+              type="button"
               className="rounded-full"
               size={"icon-xs"}
               variant={"outline"}

@@ -32,13 +32,13 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <Card>
       <CardContent className="space-y-2">
-        <figure className="overflow-hidden rounded-lg">
+        <figure className="overflow-hidden rounded-lg h-48 w-full flex items-center justify-center bg-gray-100">
           <img
-            src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
+            src={product.img_src || ""}
             alt={product.product_name}
+            className="max-h-full max-w-full object-contain"
           />
         </figure>
-
         <h2 className="font-semibold text-xs">{product.product_name}</h2>
       </CardContent>
 

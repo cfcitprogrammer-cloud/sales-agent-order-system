@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { useState, type SubmitEvent } from "react";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "sonner";
 import { Spinner } from "../ui/spinner";
 
@@ -25,7 +25,7 @@ export function LoginForm({
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { signIn } = useAuth();
+  const { signIn } = useAuthStore();
   const navigate = useNavigate();
 
   async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
@@ -34,11 +34,9 @@ export function LoginForm({
     setLoading(true);
 
     try {
-      const data = await signIn({ email, password });
-
-      if (data) {
+      signIn({ email, password }).then(() => {
         navigate("/", { replace: true });
-      }
+      });
     } catch (error: any) {
       toast.error(`Unexpected Error: ${error.message || error}`);
     } finally {

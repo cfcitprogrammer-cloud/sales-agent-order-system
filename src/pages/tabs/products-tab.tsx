@@ -6,13 +6,34 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useCartStore } from "@/stores/cart-store";
 import { ListFilter, RefreshCw, Search } from "lucide-react";
+import { toast } from "sonner";
 
 export default function ProductsTab() {
+  const { clearCart } = useCartStore();
+  // const { user, loading } = useAuthStore();
+
+  function handleRefresh() {
+    clearCart();
+    toast.info("Refreshed");
+  }
+
+  // useEffect(() => {
+  //   if (user && !loading) {
+  //     alert("DONE");
+  //   }
+  // }, [user, loading]);
+
   return (
     <main>
-      <header className="flex justify-between items-center">
-        <p>Our Products</p>
+      <header className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold">Our Products</h2>
 
         <nav className="flex items-center gap-1">
           <InputGroup>
@@ -22,9 +43,21 @@ export default function ProductsTab() {
             </InputGroupAddon>
           </InputGroup>
 
-          <Button variant={"outline"} size={"icon-sm"} className="rounded-full">
-            <RefreshCw />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant={"outline"}
+                size={"icon-sm"}
+                className="rounded-full"
+                onClick={handleRefresh}
+              >
+                <RefreshCw />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Refresh</p>
+            </TooltipContent>
+          </Tooltip>
 
           <Button variant={"outline"} size={"icon-sm"} className="rounded-full">
             <ListFilter />
