@@ -1,36 +1,66 @@
 import { create } from "zustand";
 import type { Product } from "@/db/types/product.type";
-import { supabase } from "@/lib/supabase"; // make sure you have supabase client setup
+import type { ProductVariant } from "@/db/types/product_variant.type";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
 interface ProductState {
   products: Product[];
   currentProduct: Product | null;
+  selectedVariant: ProductVariant | null;
+  quantity: number;
   isAddToCartOpen: boolean;
   loading: boolean;
   error: string | null;
+
   setProducts: (products: Product[]) => void;
   getProducts: () => Promise<void>;
-  clearCurrentProduct: () => void;
+
   setCurrentProduct: (product: Product | null) => void;
+  clearCurrentProduct: () => void;
+
+  setSelectedVariant: (variant: ProductVariant | null) => void;
+
+  setQuantity: (qty: number) => void;
+  increaseQuantity: () => void;
+  decreaseQuantity: () => void;
+
   setAddToCartOpen: (isOpen: boolean) => void;
 }
 
 export const useProductStore = create<ProductState>((set) => ({
   products: [],
   currentProduct: null,
+  selectedVariant: null,
+  quantity: 1,
   isAddToCartOpen: false,
   loading: false,
   error: null,
 
-  clearCurrentProduct: () => set({ currentProduct: null }),
-
-  setCurrentProduct: (product: Product | null) =>
-    set({ currentProduct: product }),
-
-  setAddToCartOpen: (isOpen: boolean) => set({ isAddToCartOpen: isOpen }),
-
   setProducts: (products) => set({ products }),
+
+  setCurrentProduct: (product) =>
+    set({
+      currentProduct: product,
+      quantity: 1,
+      selectedVariant: product?.product_variant?.[0] ?? null, // <-- auto-select first variant
+    }),
+
+  clearCurrentProduct: () =>
+    set({ currentProduct: null, selectedVariant: null, quantity: 1 }),
+
+  setSelectedVariant: (variant) => set({ selectedVariant: variant }),
+
+  setQuantity: (qty) => set({ quantity: qty < 1 ? 1 : qty }),
+
+  increaseQuantity: () => set((state) => ({ quantity: state.quantity + 1 })),
+
+  decreaseQuantity: () =>
+    set((state) => ({
+      quantity: state.quantity > 1 ? state.quantity - 1 : 1,
+    })),
+
+  setAddToCartOpen: (isOpen) => set({ isAddToCartOpen: isOpen }),
 
   getProducts: async () => {
     set({ loading: true, error: null });
@@ -58,8 +88,7 @@ export const useProductStore = create<ProductState>((set) => ({
         return;
       }
 
-      console.log(data);
-      set({ products: data, loading: false });
+      set({ products: data || [], loading: false });
     } catch (err: any) {
       console.error("Unexpected error:", err);
       set({

@@ -1,4 +1,5 @@
 import { Tabs, TabsContent } from "../components/ui/tabs";
+import { useParams } from "react-router-dom";
 
 import NavbarComponent from "@/components/custom/navbar";
 import DashboardTab from "./tabs/dashboard-tab";
@@ -6,9 +7,15 @@ import ProductsTab from "./tabs/products-tab";
 import OrdersTab from "./tabs/orders-tab";
 
 export default function IndexPage() {
+  const params = useParams<{ tab: string; pageNumber: string }>();
+
+  // If URL is /orders/page/:pageNumber, activate orders tab
+  const initialTab = params.tab ? "orders" : "products";
+
   return (
-    <Tabs defaultValue="products" className="w-full">
+    <Tabs defaultValue={initialTab} className="w-full">
       <NavbarComponent />
+
       <main className="p-4">
         <TabsContent value="dashboard">
           <DashboardTab />

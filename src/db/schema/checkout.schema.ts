@@ -1,24 +1,34 @@
 import { z } from "zod";
-import type { Product } from "@/db/types/product";
-import type { CartItem } from "@/stores/cart-store";
 
+// Checkout form values now map directly to your `Order` type
 export const checkoutSchema = z.object({
-  storeName: z.string().min(1, "Store name is required"),
-  contactPerson: z.string().min(1, "Contact person is required"),
-  customerName: z.string().min(1, "Customer name is required"),
+  customerName: z.string().min(1, "Customer name is required"), // maps to customer_name
+  contactNumber: z.string().optional(), // maps to contact_number
+  email: z.string().email().optional(),
   address: z.string().min(1, "Address is required"),
-  province: z.string().optional(),
   city: z.string().optional(),
-  deliveryDate: z.string().min(1, "Delivery date is required"),
-  receivingTime: z.string().min(1, "Receiving time is required"),
+  province: z.string().optional(),
+  coor: z.string().optional(),
+  deliveryDate: z.string().optional(), // maps to delivery_date
   notes: z.string().optional(),
 
-  // 👇 Product[] without productSchema
+  // Cart items must be non-empty and match CartItem
   cart: z
-    .custom<CartItem[]>()
-    .refine((val) => Array.isArray(val) && val.length > 0, {
-      message: "At least one product is required",
-    }),
+    .array(
+      z.object({
+        cart_id: z.string(),
+        cart_qty: z.number().min(1),
+        product_id: z.number(),
+        product_name: z.string(),
+        product_img: z.string().nullable(),
+        variant_id: z.number(),
+        variant_name: z.string(),
+        price: z.number(),
+        sku: z.string(),
+        uom: z.string(),
+      }),
+    )
+    .min(1, "At least one product is required"),
 });
 
 export type CheckoutFormValues = z.infer<typeof checkoutSchema>;

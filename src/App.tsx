@@ -5,11 +5,12 @@ import LoginPage from "./pages/auth/login";
 import RegisterPage from "./pages/auth/register";
 import CheckoutPage from "./pages/checkout";
 import RequestChangePasswordPage from "./pages/auth/request-reset-password";
+import OrderDetailsPage from "./pages/order-details";
 
 function App() {
   return (
     <Routes>
-      <Route element={<IndexPage />} path="/" />
+      <Route element={<IndexPage />} path="/:tab/:pageNumber" />
       <Route element={<CheckoutPage />} path="/checkout" />
 
       {/* auth */}
@@ -19,6 +20,8 @@ function App() {
         element={<RequestChangePasswordPage />}
         path="/pw/request-change"
       />
+
+      <Route element={<OrderDetailsPage />} path="/order/details/:orderId" />
     </Routes>
   );
 }

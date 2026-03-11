@@ -1,6 +1,6 @@
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, X } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -12,9 +12,29 @@ import {
 import { useState } from "react";
 import { useCartStore, type CartItem } from "@/stores/cart-store";
 
-export default function CheckoutItemCard({ item }: { item: CartItem }) {
+interface CheckoutItemCardProps {
+  item: CartItem;
+  onIncrease?: () => void;
+  onDecrease?: () => void;
+  onRemove?: () => void;
+}
+
+export default function CheckoutItemCard({
+  item,
+  onIncrease,
+  onDecrease,
+  onRemove,
+}: CheckoutItemCardProps) {
   const { increaseQuantity, decreaseQuantity, removeFromCart } = useCartStore();
   const [open, setOpen] = useState(false);
+
+  const handleIncrease = onIncrease
+    ? onIncrease
+    : () => increaseQuantity(item.cart_id);
+  const handleDecrease = onDecrease
+    ? onDecrease
+    : () => decreaseQuantity(item.cart_id);
+  const handleRemove = onRemove ? onRemove : () => removeFromCart(item.cart_id);
 
   return (
     <Card className="p-1">
@@ -25,7 +45,7 @@ export default function CheckoutItemCard({ item }: { item: CartItem }) {
         >
           <figure className="w-12 h-12 overflow-hidden rounded-lg">
             <img
-              src={item.img_src || ""}
+              src={item.product_img || ""}
               alt={item.product_name}
               className="w-full h-full object-cover object-center text-xs"
             />
@@ -33,9 +53,9 @@ export default function CheckoutItemCard({ item }: { item: CartItem }) {
 
           <div>
             <h1 className="text-xs font-semibold">{item.product_name}</h1>
-            <p className="text-xs">
-              {item.unit} | {item.cart_qty} pcs
-            </p>
+            <p className="text-xs">{item.variant_alias}</p>
+
+            <p>P{item.price || 0}</p>
           </div>
 
           <div
@@ -47,7 +67,7 @@ export default function CheckoutItemCard({ item }: { item: CartItem }) {
               className="rounded-full"
               size={"icon-xs"}
               variant={"outline"}
-              onClick={() => decreaseQuantity(item.cart_id)}
+              onClick={handleDecrease}
             >
               <Minus />
             </Button>
@@ -57,9 +77,18 @@ export default function CheckoutItemCard({ item }: { item: CartItem }) {
               className="rounded-full"
               size={"icon-xs"}
               variant={"outline"}
-              onClick={() => increaseQuantity(item.cart_id)}
+              onClick={handleIncrease}
             >
               <Plus />
+            </Button>
+            <Button
+              type="button"
+              className="rounded-full"
+              size={"icon-xs"}
+              variant={"outline"}
+              onClick={handleRemove}
+            >
+              <X />
             </Button>
           </div>
         </div>

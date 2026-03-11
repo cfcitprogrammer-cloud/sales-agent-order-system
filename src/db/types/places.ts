@@ -1,0 +1,11 @@
+export type Province = {
+  name: string;
+  region: string;
+  key: string;
+};
+
+export type City = {
+  name: string;
+  province: string;
+  city?: boolean;
+};

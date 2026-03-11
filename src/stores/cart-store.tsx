@@ -1,47 +1,81 @@
 import { create } from "zustand";
-import type { Product } from "@/db/types/product";
+import type { Product } from "@/db/types/product.type";
+import type { ProductVariant } from "@/db/types/product_variant.type";
 import { generateCartId } from "@/lib/utils";
 
-export interface CartItem extends Product {
-  cart_id: string; // unique id for this cart entry
-  cart_qty: number; // renamed quantity
+export interface CartItem {
+  cart_id: string;
+  cart_qty: number;
+
+  product_id: number;
+  product_name: string;
+  product_img: string | null;
+
+  variant_id: number;
+  variant_name: string;
+  variant_alias: string;
+  price: number;
+  sku: string;
+  uom: string;
 }
 
 interface CartState {
   cart: CartItem[];
-  addToCart: (product: Product) => void;
+
+  addToCart: (product: Product, variant: ProductVariant, qty?: number) => void; // <-- qty optional
   removeFromCart: (cartId: string) => void;
   clearCart: () => void;
+
   increaseQuantity: (cartId: string) => void;
   decreaseQuantity: (cartId: string) => void;
+
   totalPrice: () => number;
 }
 
 export const useCartStore = create<CartState>((set, get) => ({
   cart: [],
 
-  addToCart: (product) => {
+  addToCart: (product, variant, qty = 1) => {
     const cart = get().cart;
-    // check if product already in cart
-    const existing = cart.find((item) => item.id === product.id);
+
+    const existing = cart.find((item) => item.variant_id === variant.id);
 
     if (existing) {
       set({
         cart: cart.map((item) =>
-          item.cart_id === existing.cart_id
-            ? { ...item, cart_qty: item.cart_qty + 1 }
+          item.variant_id === variant.id
+            ? { ...item, cart_qty: item.cart_qty + qty } // <-- add qty
             : item,
         ),
       });
-    } else {
-      set({
-        cart: [...cart, { ...product, cart_qty: 1, cart_id: generateCartId() }],
-      });
+      return;
     }
+
+    const newItem: CartItem = {
+      cart_id: generateCartId(),
+      cart_qty: qty, // <-- use qty here
+
+      product_id: product.id,
+      product_name: product.name,
+      product_img: product.img_src,
+
+      variant_id: variant.id,
+      variant_name: variant.name,
+      variant_alias: variant.alias,
+      price: variant.price || 0,
+      sku: variant.sku,
+      uom: variant.uom,
+    };
+
+    set({
+      cart: [...cart, newItem],
+    });
   },
 
   removeFromCart: (cartId) => {
-    set({ cart: get().cart.filter((item) => item.cart_id !== cartId) });
+    set({
+      cart: get().cart.filter((item) => item.cart_id !== cartId),
+    });
   },
 
   clearCart: () => set({ cart: [] }),

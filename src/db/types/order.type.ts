@@ -1,3 +1,5 @@
+import type { OrderProducts } from "./order_products.type";
+
 export type Order = {
   id: number;
   customer_name: string;
@@ -10,4 +12,7 @@ export type Order = {
   delivery_date: string | null;
   notes: string | null;
   status: string;
+
+  // Add order_products
+  order_products?: OrderProducts[];
 };

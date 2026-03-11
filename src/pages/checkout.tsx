@@ -1,70 +1,71 @@
+"use client";
+
 import { CheckoutForm } from "@/components/forms/checkout-form";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import type { CheckoutFormValues } from "@/db/schema/checkout.schema";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCartStore } from "@/stores/cart-store";
-import { useState } from "react";
 import { toast } from "sonner";
 
 export default function CheckoutPage() {
   const { user } = useAuthStore();
-  const { clearCart } = useCartStore();
+  const { cart, clearCart } = useCartStore();
 
+  // Handles form submission and sends order + items to Supabase
   async function handleOrderSubmit(values: CheckoutFormValues) {
+    console.log("HEY");
+    if (cart.length === 0) {
+      toast.error("Your cart is empty");
+      return false;
+    }
+
     const t = toast.loading("Your order is being created...");
 
     try {
+      // Call the RPC we created
       const { error } = await supabase.rpc("create_order_with_items", {
         order_data: {
-          store_name: values.storeName,
           customer_name: values.customerName,
-          contact_person: values.contactPerson,
+          contact_number: values.contactNumber ?? null,
+          email: values.email ?? null,
           address: values.address,
+          city: values.city ?? null,
+          province: values.province ?? null,
+          coor: values.coor ?? null,
+          delivery_date:
+            values.deliveryDate &&
+            !isNaN(new Date(values.deliveryDate).getTime())
+              ? new Date(values.deliveryDate).toISOString().split("T")[0]
+              : null,
+          notes: values.notes ?? null,
           status: "PENDING",
-          delivery_date: values.deliveryDate,
-          receiving_time: values.receivingTime,
-          remarks: values.notes,
-          user_id: user?.id,
-          city: values.city,
-          province: values.province,
+          user_id: user?.id ?? null, // optional
         },
-        items_data: values.cart.map((item) => ({
-          cart_id: item.cart_id,
-          item: item.product_name,
-          unit: item.unit,
-          weight_value: item.weight_value,
-          weight_unit: item.weight_unit,
-          price: item.price,
-          base_price: item.base_price,
-          qty: item.qty,
-          cart_qty: item.cart_qty,
+        items_data: cart.map((item) => ({
+          product_name: item.product_name,
+          variant_name: item.variant_name,
+          sku: item.sku,
+          uom: item.uom,
+          price_at_order: item.price || 0,
+          qty: item.cart_qty,
+          img_src: item.product_img ?? null,
         })),
       });
 
       if (error) {
+        toast.dismiss(t);
         toast.error(error.message);
         return false;
-      } else {
-        toast.dismiss(t);
-        toast.success("Order created");
-        clearCart();
-        return true;
-      }
-    } catch (error: any) {
-      if (error?.message) {
-        toast.error(error?.message);
       }
 
+      toast.dismiss(t);
+      toast.success("Order created successfully");
+      clearCart();
+      return true;
+    } catch (err: any) {
+      toast.dismiss(t);
+      toast.error(err?.message || "Failed to create order");
       return false;
     }
   }

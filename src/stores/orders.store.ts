@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Order } from "@/db/types/order";
+import type { Order } from "@/db/types/order.type";
 import { supabase } from "@/lib/supabase"; // make sure you have supabase client setup
 import { toast } from "sonner";
 

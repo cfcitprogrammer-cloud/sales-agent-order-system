@@ -25,7 +25,7 @@ export function LoginForm({
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { signIn } = useAuthStore();
+  const { signIn, role } = useAuthStore();
   const navigate = useNavigate();
 
   async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
@@ -35,7 +35,16 @@ export function LoginForm({
 
     try {
       signIn({ email, password }).then(() => {
-        navigate("/", { replace: true });
+        setLoading(false);
+
+        if (role) {
+          alert(role);
+          navigate("/", { replace: true });
+        } else {
+          toast.error(
+            "Account is not approved yet. Please wait for administrator approval.",
+          );
+        }
       });
     } catch (error: any) {
       toast.error(`Unexpected Error: ${error.message || error}`);
@@ -56,9 +65,11 @@ export function LoginForm({
               <div className="flex size-8 items-center justify-center rounded-md">
                 <GalleryVerticalEnd className="size-6" />
               </div>
-              <span className="sr-only">Acme Inc.</span>
+              <span className="sr-only">Sales Agent Order System</span>
             </a>
-            <h1 className="text-xl font-bold">Welcome to Acme Inc.</h1>
+            <h1 className="text-xl font-bold">
+              Welcome to Sales Agent Order System
+            </h1>
             <FieldDescription>
               Don&apos;t have an account? <Link to="/register">Sign up</Link>
             </FieldDescription>

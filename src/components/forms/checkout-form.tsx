@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import {
@@ -30,11 +30,10 @@ import {
   type CheckoutFormValues,
 } from "@/db/schema/checkout.schema";
 import type { Province, City } from "@/db/types/places";
-
 import rawProvincesData from "@/db/data/provinces.json";
 import rawCitiesData from "@/db/data/cities.json";
+
 import { useCartStore } from "@/stores/cart-store";
-import CheckoutItemCard2 from "../custom/checkout-item-card-2";
 import CheckoutItemCard from "../custom/checkout-item-card";
 import { useNavigate } from "react-router-dom";
 import CustomAlertDialog from "../custom/dialogs/alert-dialog";
@@ -51,22 +50,26 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
   const provinces: Province[] = rawProvincesData as Province[];
   const cities: City[] = rawCitiesData as City[];
 
+  const {
+    cart,
+    clearCart,
+    increaseQuantity,
+    decreaseQuantity,
+    removeFromCart,
+  } = useCartStore();
   const [error, setError] = useState("");
-
-  const { cart, clearCart } = useCartStore();
   const navigate = useNavigate();
 
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
-      storeName: "",
       customerName: "",
-      contactPerson: "",
+      contactNumber: "",
+      email: "",
       address: "",
       province: "",
       city: "",
       deliveryDate: "",
-      receivingTime: "",
       notes: "",
       cart,
     },
@@ -74,19 +77,25 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
 
   const selectedProvinceName = form.watch("province");
 
-  // Reset city when province changes
   useEffect(() => {
     form.setValue("city", "");
   }, [selectedProvinceName, form]);
 
-  // Map province name to key for city filtering
+  useEffect(() => {
+    form.setValue("cart", cart);
+  }, [cart, form]);
+
   const selectedProvinceKey = provinces.find(
     (p) => p.name === selectedProvinceName,
   )?.key;
 
-  // Filter cities based on province key
   const filteredCities = cities.filter(
     (c) => c.province === selectedProvinceKey,
+  );
+
+  const totalAmount = cart.reduce(
+    (acc, item) => acc + item.price * item.cart_qty,
+    0,
   );
 
   function clearCartAndBack() {
@@ -104,37 +113,20 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
         onSubmit={form.handleSubmit(
           async (data) => {
             const isSuccess = await onSubmit(data);
-
             if (isSuccess) {
               form.reset();
               navigate("/", { replace: true });
             }
           },
           (errors) => {
-            if (errors.cart) {
-              setError(errors.cart.message || "");
-            }
+            console.log(errors);
+            if (errors.cart) setError(errors.cart.message || "");
           },
         )}
         className="grid grid-cols-2 gap-4"
       >
+        {/* Left: Customer info */}
         <div className="space-y-4">
-          {/* Store Name */}
-          <FormField
-            control={form.control}
-            name="storeName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Store Name</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Customer Name */}
           <FormField
             control={form.control}
             name="customerName"
@@ -149,13 +141,12 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
             )}
           />
 
-          {/* Contact Person */}
           <FormField
             control={form.control}
-            name="contactPerson"
+            name="contactNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Contact Person</FormLabel>
+                <FormLabel>Contact Number</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
@@ -164,7 +155,20 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
             )}
           />
 
-          {/* Address */}
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input type="email" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="address"
@@ -179,9 +183,9 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
             )}
           />
 
+          {/* Province & City */}
           <div className="flex gap-2">
             <div className="flex-1">
-              {/* Province Combobox */}
               <FormField
                 control={form.control}
                 name="province"
@@ -190,7 +194,7 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
                     <FormLabel>Province</FormLabel>
                     <FormControl>
                       <Combobox
-                        items={provinces.map((p) => p.name)} // store readable name
+                        items={provinces.map((p) => p.name)}
                         value={field.value}
                         onValueChange={field.onChange}
                       >
@@ -217,7 +221,6 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
             </div>
 
             <div className="flex-1">
-              {/* City Combobox */}
               <FormField
                 control={form.control}
                 name="city"
@@ -258,8 +261,8 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
             </div>
           </div>
 
-          {/* Delivery Date / Receiving Time */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Delivery Date & Time */}
+          <div className="grid grid-cols-1 gap-4">
             <FormField
               control={form.control}
               name="deliveryDate"
@@ -273,22 +276,8 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="receivingTime"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Receiving Time</FormLabel>
-                  <FormControl>
-                    <Input type="time" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </div>
 
-          {/* Notes */}
           <FormField
             control={form.control}
             name="notes"
@@ -304,10 +293,10 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
           />
         </div>
 
+        {/* Right: Cart */}
         <div className="space-y-2">
-          <div>
-            <h1 className="text-lg font-semibold">Your Cart</h1>
-          </div>
+          <h1 className="text-lg font-semibold">Your Cart</h1>
+
           {error && (
             <Alert>
               <AlertCircle />
@@ -315,24 +304,31 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          <div>
+
+          <div className="space-y-2">
             {cart.map((item) => (
-              <CheckoutItemCard key={item.id} item={item} />
+              <CheckoutItemCard
+                key={item.cart_id}
+                item={item}
+                onIncrease={() => increaseQuantity(item.cart_id)}
+                onDecrease={() => decreaseQuantity(item.cart_id)}
+                onRemove={() => removeFromCart(item.cart_id)}
+              />
             ))}
           </div>
+
           <Separator />
+
           <div className="flex items-center justify-between gap-1">
             <p className="text-md font-semibold">Amount total</p>
-            <p className="text-sm">
-              ₱{cart.reduce((acc, item) => acc + item.price * item.cart_qty, 0)}
-            </p>
+            <p className="text-sm">₱{totalAmount}</p>
           </div>
 
           <footer className="space-y-2">
             <Button
               type="submit"
               className="w-full"
-              size={"sm"}
+              size="sm"
               disabled={form.formState.isSubmitting}
             >
               {form.formState.isSubmitting ? <Spinner /> : "Submit Order"}
@@ -341,10 +337,10 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
             <div className="flex flex-wrap gap-2">
               <Button
                 type="button"
-                variant={"outline"}
+                variant="outline"
                 className="flex-1"
                 onClick={back}
-                size={"sm"}
+                size="sm"
               >
                 Back
               </Button>
