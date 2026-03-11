@@ -1,3 +1,4 @@
+import { AddToCartDrawer } from "@/components/custom/add-to-cart.drawer";
 import { CheckoutDrawer } from "@/components/custom/checkout-drawer";
 import ProductList from "@/components/custom/products-list";
 import { Button } from "@/components/ui/button";
@@ -23,12 +24,6 @@ export default function ProductsTab() {
     clearCart();
     toast.info("Refreshed");
   }
-
-  // useEffect(() => {
-  //   if (user && !loading) {
-  //     alert("DONE");
-  //   }
-  // }, [user, loading]);
 
   return (
     <main>
@@ -64,6 +59,8 @@ export default function ProductsTab() {
           </Button>
 
           <CheckoutDrawer />
+
+          <AddToCartDrawer />
         </nav>
       </header>
 

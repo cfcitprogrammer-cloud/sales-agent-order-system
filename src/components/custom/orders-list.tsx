@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import ProductCard from "./product-card";
 import { useProductStore } from "@/stores/product-store";
 
-export default function ProductList() {
+export default function OrdersList() {
   const { getProducts, products } = useProductStore();
 
   async function fetchProducts() {
