@@ -30,24 +30,21 @@ export function LoginForm({
 
   async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-
     setLoading(true);
 
     try {
-      signIn({ email, password }).then(() => {
-        setLoading(false);
+      await signIn({ email, password });
 
-        if (role) {
-          alert(role);
-          navigate("/", { replace: true });
-        } else {
-          toast.error(
-            "Account is not approved yet. Please wait for administrator approval.",
-          );
-        }
-      });
+      if (role) {
+        alert(role);
+        navigate("/", { replace: true });
+      } else {
+        toast.error(
+          "Account is not approved yet. Please wait for administrator approval.",
+        );
+      }
     } catch (error: any) {
-      toast.error(`Unexpected Error: ${error.message || error}`);
+      toast.error(`${error?.message || error}`);
     } finally {
       setLoading(false);
     }
@@ -107,6 +104,13 @@ export function LoginForm({
               required
             />
           </Field>
+
+          <Link
+            to="/forgot-password"
+            className="text-sm text-primary underline"
+          >
+            Forgot password?
+          </Link>
 
           <Field>
             <Button type="submit" disabled={loading}>

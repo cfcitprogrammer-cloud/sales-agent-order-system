@@ -35,13 +35,13 @@ export function SignupForm({
 
   async function onSubmit(values: SignupFormValues) {
     try {
-      signup({
+      await signup({
         email: values.email,
         password: values.password,
         name: values.name,
-      }).then(() => {
-        navigate("/login?recentlyRegistered=true", { replace: true });
       });
+
+      navigate("/login?recentlyRegistered=true", { replace: true });
     } catch (error: any) {
       toast.error(error?.message || "Unexpected error occurred");
     }

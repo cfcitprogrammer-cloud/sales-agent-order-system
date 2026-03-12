@@ -15,23 +15,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 import CardView from "./orders/card-view";
 import TableView from "./orders/table-view";
-import { Search } from "lucide-react";
+
+import { Grid2x2, List, Search } from "lucide-react";
 
 const statusOptions = [
-  "New Order",
-  "Pending",
-  "Cancelled",
-  "Reviewed",
-  "Approved",
-  "Rejected",
-  "Completed",
+  "pending",
+  "cancelled",
+  "approved",
+  "rejected",
+  "completed",
 ];
 
 export default function OrdersTab() {
   const navigate = useNavigate();
   const { pageNumber = "1" } = useParams();
+
   const [view, setView] = useState<"card" | "table">("card");
   const [statusFilter, setStatusFilter] = useState<string | undefined>();
   const [searchTerm, setSearchTerm] = useState("");
@@ -73,18 +74,24 @@ export default function OrdersTab() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <InputGroupAddon align="inline-end">
-              <Search />
+              <Search size={18} />
             </InputGroupAddon>
           </InputGroup>
 
           <ToggleGroup
             type="single"
+            size="sm"
             value={view}
             onValueChange={(val: "card" | "table") => setView(val)}
             className="border rounded"
           >
-            <ToggleGroupItem value="card">Card View</ToggleGroupItem>
-            <ToggleGroupItem value="table">Table View</ToggleGroupItem>
+            <ToggleGroupItem size="sm" value="card">
+              <Grid2x2 size={16} />
+            </ToggleGroupItem>
+
+            <ToggleGroupItem size="sm" value="table">
+              <List size={16} />
+            </ToggleGroupItem>
           </ToggleGroup>
         </div>
       </header>

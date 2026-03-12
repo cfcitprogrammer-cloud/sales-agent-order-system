@@ -10,7 +10,7 @@ export default function IndexPage() {
   const params = useParams<{ tab: string; pageNumber: string }>();
 
   // If URL is /orders/page/:pageNumber, activate orders tab
-  const initialTab = params.tab ? "orders" : "products";
+  const initialTab = params.tab;
 
   return (
     <Tabs defaultValue={initialTab} className="w-full">
