@@ -11,7 +11,7 @@ import {
 import { useAuthStore } from "@/stores/auth-store";
 
 export default function NavUser() {
-  const { user } = useAuthStore();
+  const { user, role } = useAuthStore();
 
   return (
     <DropdownMenu>
@@ -24,10 +24,11 @@ export default function NavUser() {
           <DropdownMenuSeparator />
           <DropdownMenuLabel>
             <p>
-              <strong className="font-semibold">Name:</strong> Eli Romero
+              <strong className="font-semibold">Name:</strong>{" "}
+              {user?.user_metadata.name || user?.email}
             </p>
             <p>
-              <strong className="font-semibold">Role:</strong> Sales
+              <strong className="font-semibold">Role:</strong> {role}
             </p>
           </DropdownMenuLabel>
         </DropdownMenuGroup>

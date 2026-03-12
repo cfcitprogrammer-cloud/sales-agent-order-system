@@ -1,5 +1,6 @@
 import "./App.css";
 import { Route, Routes } from "react-router-dom";
+
 import IndexPage from "./pages";
 import LoginPage from "./pages/auth/login";
 import RegisterPage from "./pages/auth/register";
@@ -7,21 +8,33 @@ import CheckoutPage from "./pages/checkout";
 import RequestChangePasswordPage from "./pages/auth/request-reset-password";
 import OrderDetailsPage from "./pages/order-details";
 
+import { ProtectedRoute } from "./pages/auth/protected-route-wrapper";
+
 function App() {
   return (
     <Routes>
-      <Route element={<IndexPage />} path="/:tab/:pageNumber" />
-      <Route element={<CheckoutPage />} path="/checkout" />
+      {/* ADMIN ONLY */}
+      <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+        <Route path="/:tab/:pageNumber" element={<IndexPage />} />
+      </Route>
 
-      {/* auth */}
-      <Route element={<LoginPage />} path="/login" />
-      <Route element={<RegisterPage />} path="/register" />
+      {/* ADMIN + AGENT */}
+      <Route element={<ProtectedRoute allowedRoles={["admin", "agent"]} />}>
+        <Route path="/order/details/:orderId" element={<OrderDetailsPage />} />
+      </Route>
+
+      {/* AGENT ONLY */}
+      <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+        <Route path="/checkout" element={<CheckoutPage />} />
+      </Route>
+
+      {/* PUBLIC AUTH ROUTES */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
       <Route
-        element={<RequestChangePasswordPage />}
         path="/pw/request-change"
+        element={<RequestChangePasswordPage />}
       />
-
-      <Route element={<OrderDetailsPage />} path="/order/details/:orderId" />
     </Routes>
   );
 }

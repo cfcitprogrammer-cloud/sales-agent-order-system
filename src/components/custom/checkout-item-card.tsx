@@ -55,7 +55,7 @@ export default function CheckoutItemCard({
             <h1 className="text-xs font-semibold">{item.product_name}</h1>
             <p className="text-xs">{item.variant_alias}</p>
 
-            <p>P{item.price || 0}</p>
+            {/* <p>P{item.price || 0}</p> */}
           </div>
 
           <div
@@ -93,12 +93,12 @@ export default function CheckoutItemCard({
           </div>
         </div>
 
-        {open && (
+        {/* {open && (
           <div className="mt-2">
             <Table className="text-center">
               <TableHeader>
                 <TableHead className="text-center">Item Rate</TableHead>
-                <TableHead className="text-center">Amount</TableHead>
+                <TableHead className="text-center">Qty</TableHead>
                 <TableHead className="text-center">Total</TableHead>
               </TableHeader>
               <TableBody>
@@ -110,7 +110,7 @@ export default function CheckoutItemCard({
               </TableBody>
             </Table>
           </div>
-        )}
+        )} */}
       </CardContent>
     </Card>
   );

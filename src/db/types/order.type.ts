@@ -16,4 +16,11 @@ export type Order = {
 
   // Add order_products
   order_products?: OrderProducts[];
+
+  pending_at: string | null;
+  cancelled_at: string | null;
+  reviewed_at: string | null;
+  approved_at: string | null;
+  rejected_at: string | null;
+  completed_at: string | null;
 };

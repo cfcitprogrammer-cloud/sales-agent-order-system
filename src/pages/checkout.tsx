@@ -39,7 +39,7 @@ export default function CheckoutPage() {
               ? new Date(values.deliveryDate).toISOString().split("T")[0]
               : null,
           notes: values.notes ?? null,
-          status: "PENDING",
+          status: "Pending",
           user_id: user?.id ?? null, // optional
         },
         items_data: cart.map((item) => ({

@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { supabase } from "@/lib/supabase";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 export default function RequestChangePasswordPage() {
@@ -48,6 +49,11 @@ export default function RequestChangePasswordPage() {
             <Button className="w-full" disabled={isLoading}>
               {isLoading ? <Spinner /> : "Request Change Password"}
             </Button>
+            <Link to={"/login"}>
+              <Button className="w-full" variant={"outline"}>
+                Back to Login
+              </Button>
+            </Link>
           </form>
         </CardContent>
       </Card>

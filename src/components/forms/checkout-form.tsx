@@ -41,6 +41,7 @@ import { Separator } from "../ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { AlertCircle } from "lucide-react";
 import { Spinner } from "../ui/spinner";
+import { toast } from "sonner";
 
 type CheckoutFormProps = {
   onSubmit: (values: CheckoutFormValues) => Promise<boolean>;
@@ -100,11 +101,11 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
 
   function clearCartAndBack() {
     clearCart();
-    navigate("/", { replace: true });
+    navigate("/products/1", { replace: true });
   }
 
   function back() {
-    navigate("/", { replace: true });
+    navigate("/products/1", { replace: true });
   }
 
   return (
@@ -115,12 +116,16 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
             const isSuccess = await onSubmit(data);
             if (isSuccess) {
               form.reset();
-              navigate("/", { replace: true });
+              navigate("/products/1", { replace: true });
+              toast.success("Order placed successfully");
+            } else {
+              toast.error("Failed to place order. Please try again.");
             }
           },
           (errors) => {
             console.log(errors);
             if (errors.cart) setError(errors.cart.message || "");
+            toast.error("Failed to place order. Please try again.");
           },
         )}
         className="grid grid-cols-2 gap-4"
@@ -319,10 +324,10 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
 
           <Separator />
 
-          <div className="flex items-center justify-between gap-1">
+          {/* <div className="flex items-center justify-between gap-1">
             <p className="text-md font-semibold">Amount total</p>
             <p className="text-sm">₱{totalAmount}</p>
-          </div>
+          </div> */}
 
           <footer className="space-y-2">
             <Button

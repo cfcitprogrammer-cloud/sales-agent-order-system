@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -7,7 +9,6 @@ import type { Order } from "@/db/types/order.type";
 
 import {
   Table,
-  TableCaption,
   TableHeader,
   TableRow,
   TableHead,
@@ -15,6 +16,13 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Link } from "react-router-dom";
+import { useAuthStore } from "@/stores/auth-store";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface TableViewProps {
   page: number;
@@ -22,6 +30,38 @@ interface TableViewProps {
   searchTerm?: string;
   onPageChange: (page: number) => void;
 }
+
+const statuses = [
+  "Pending",
+  "Cancelled",
+  "Reviewed",
+  "Approved",
+  "Rejected",
+  "Completed",
+];
+
+const statusTimestampFieldMap: Record<string, keyof Order> = {
+  Pending: "pending_at",
+  Cancelled: "cancelled_at",
+  Reviewed: "reviewed_at",
+  Approved: "approved_at",
+  Rejected: "rejected_at",
+  Completed: "completed_at",
+};
+
+const roleStatusMap: Record<string, string[]> = {
+  logistic: ["Pending", "Cancelled", "Reviewed", "Completed"],
+  agent: ["Cancelled"],
+  accounting: ["Cancelled", "Approved", "Rejected"],
+  admin: [
+    "Pending",
+    "Cancelled",
+    "Reviewed",
+    "Approved",
+    "Rejected",
+    "Completed",
+  ],
+};
 
 export default function TableView({
   page,
@@ -32,8 +72,9 @@ export default function TableView({
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [totalPages, setTotalPages] = useState(1);
-
+  const [updatingIds, setUpdatingIds] = useState<number[]>([]);
   const pageSize = 10;
+  const role = useAuthStore((state) => state.role);
 
   useEffect(() => {
     async function fetchOrders() {
@@ -65,32 +106,91 @@ export default function TableView({
     );
   };
 
-  const massApprove = async () => {
-    if (selectedIds.length === 0) return;
+  const changeStatus = async (order: Order, newStatus: string) => {
+    if (!role) return;
+
+    // Enforce flow
+    const flowOrder: string[] = [
+      "Pending",
+      "Cancelled",
+      "Reviewed",
+      "Approved",
+      "Rejected",
+      "Completed",
+    ];
+    const currentIndex = flowOrder.indexOf(order.status);
+    const newIndex = flowOrder.indexOf(newStatus);
+
+    if (newIndex < currentIndex) {
+      toast.error(
+        `Cannot move status backwards from ${order.status} to ${newStatus}`,
+      );
+      return;
+    }
+
+    setUpdatingIds((prev) => [...prev, order.id]);
+
+    const timestampField = statusTimestampFieldMap[newStatus];
+    const updateData: Partial<Order> = { status: newStatus };
+    if (timestampField)
+      updateData[timestampField] = new Date().toISOString() as any;
 
     const { error } = await supabase
       .from("orders")
-      .update({ status: "APPROVED" })
-      .in("id", selectedIds);
+      .update(updateData)
+      .eq("id", order.id);
 
     if (error) {
-      toast.error(error.message);
+      toast.error(error.message || "Failed to update status");
     } else {
-      toast.success(`Approved ${selectedIds.length} orders`);
-      setSelectedIds([]);
-      onPageChange(page);
+      toast.success(`Order #${order.id} updated to ${newStatus}`);
+      setOrders((prev) =>
+        prev.map((o) => (o.id === order.id ? { ...o, ...updateData } : o)),
+      );
     }
+
+    setUpdatingIds((prev) => prev.filter((id) => id !== order.id));
+  };
+
+  // Mass action handler
+  const massUpdateStatus = async (newStatus: string) => {
+    if (!role || selectedIds.length === 0) return;
+
+    for (const id of selectedIds) {
+      const orderItem = orders.find((o) => o.id === id);
+      if (orderItem) await changeStatus(orderItem, newStatus);
+    }
+    setSelectedIds([]);
   };
 
   return (
     <div className="space-y-4">
-      {/* Mass approve button */}
+      {/* Mass action dropdown */}
       {selectedIds.length > 0 && (
-        <div className="flex gap-2">
-          <Button size="sm" onClick={massApprove}>
-            Approve Selected ({selectedIds.length})
-          </Button>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="sm">Mass Actions ({selectedIds.length})</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {[
+              "Pending",
+              "Cancelled",
+              "Reviewed",
+              "Approved",
+              "Rejected",
+              "Completed",
+            ]
+              .filter((s) => roleStatusMap[role!]?.includes(s))
+              .map((status) => (
+                <DropdownMenuItem
+                  key={status}
+                  onClick={() => massUpdateStatus(status)}
+                >
+                  {status}
+                </DropdownMenuItem>
+              ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
 
       <Table>
@@ -117,31 +217,63 @@ export default function TableView({
         </TableHeader>
 
         <TableBody>
-          {orders.map((order) => (
-            <TableRow key={order.id}>
-              <TableCell>
-                <Checkbox
-                  checked={selectedIds.includes(order.id)}
-                  onCheckedChange={() => toggleSelection(order.id)}
-                />
-              </TableCell>
-              <TableCell>{order.customer_name}</TableCell>
-              <TableCell>{order.contact_number ?? "N/A"}</TableCell>
-              <TableCell>{order.email ?? "N/A"}</TableCell>
-              <TableCell>
-                {order.address}, {order.city}, {order.province}
-              </TableCell>
-              <TableCell>{order.delivery_date ?? "N/A"}</TableCell>
-              <TableCell>{order.status ?? "N/A"}</TableCell>
-              <TableCell className="text-right">
-                <Link to={`/order/details/${order.id}`}>
-                  <Button size="sm" variant="outline">
-                    View
-                  </Button>
-                </Link>
-              </TableCell>
-            </TableRow>
-          ))}
+          {orders.map((order) => {
+            const visibleStatuses = role ? (roleStatusMap[role] ?? []) : [];
+            return (
+              <TableRow key={order.id}>
+                <TableCell>
+                  <Checkbox
+                    checked={selectedIds.includes(order.id)}
+                    onCheckedChange={() => toggleSelection(order.id)}
+                  />
+                </TableCell>
+                <TableCell>{order.customer_name}</TableCell>
+                <TableCell>{order.contact_number ?? "N/A"}</TableCell>
+                <TableCell>{order.email ?? "N/A"}</TableCell>
+                <TableCell>
+                  {order.address}, {order.city}, {order.province}
+                </TableCell>
+                <TableCell>{order.delivery_date ?? "N/A"}</TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={updatingIds.includes(order.id)}
+                      >
+                        {order.status}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {visibleStatuses
+                        .filter((status) => {
+                          if (role === "logistic" && status === "Completed") {
+                            return order.status === "Approved";
+                          }
+                          return true;
+                        })
+                        .map((status) => (
+                          <DropdownMenuItem
+                            key={status}
+                            onClick={() => changeStatus(order, status)}
+                          >
+                            {status}
+                          </DropdownMenuItem>
+                        ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Link to={`/order/details/${order.id}`}>
+                    <Button size="sm" variant="outline">
+                      View
+                    </Button>
+                  </Link>
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
 

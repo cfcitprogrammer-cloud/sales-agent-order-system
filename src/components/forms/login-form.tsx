@@ -36,8 +36,7 @@ export function LoginForm({
       await signIn({ email, password });
 
       if (role) {
-        alert(role);
-        navigate("/", { replace: true });
+        navigate("/products/1", { replace: true });
       } else {
         toast.error(
           "Account is not approved yet. Please wait for administrator approval.",
@@ -106,7 +105,7 @@ export function LoginForm({
           </Field>
 
           <Link
-            to="/forgot-password"
+            to="/pw/request-change"
             className="text-sm text-primary underline"
           >
             Forgot password?

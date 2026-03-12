@@ -30,7 +30,8 @@ export function CheckoutDrawer() {
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="flex flex-row items-center justify-between gap-1 flex-wrap">
-          <DrawerTitle>Order {generateCartId()}</DrawerTitle>
+          <DrawerTitle>Your Order</DrawerTitle>
+          {/* <DrawerTitle>Order {generateCartId()}</DrawerTitle> */}
           <DrawerDescription>{formatDateTime()}</DrawerDescription>
         </DrawerHeader>
         <div className="overflow-hidden w-full">
@@ -43,8 +44,15 @@ export function CheckoutDrawer() {
               </div>
 
               <div className="no-scrollbar overflow-y-auto space-y-2">
+                {cart.length === 0 && (
+                  <div className="text-center py-10 text-gray-500">
+                    <p className="text-lg font-medium">Cart is empty</p>
+                    <p className="text-sm">Add items to start checkout</p>
+                  </div>
+                )}
+
                 {cart.map((item) => (
-                  <CheckoutItemCard item={item} />
+                  <CheckoutItemCard key={item.cart_id} item={item} />
                 ))}
               </div>
             </div>
@@ -52,7 +60,7 @@ export function CheckoutDrawer() {
         </div>
         <DrawerFooter>
           <Separator />
-          <div className="text-sm">
+          {/* <div className="text-sm">
             <h2 className="font-semibold">Payment Summary</h2>
             <div className="flex justify-between items-center gap-1">
               <p className="text-gray-500">Sub Total</p>
@@ -63,9 +71,9 @@ export function CheckoutDrawer() {
           <div className="flex justify-between items-center gap-1 font-semibold text-sm">
             <p>Amount to be Paid</p>
             <p>₱{totalPrice()}</p>
-          </div>
+          </div> */}
           <Link to={"/checkout"}>
-            <Button className="w-full" size={"sm"}>
+            <Button className="w-full" size={"sm"} disabled={cart.length === 0}>
               Place Order
             </Button>
           </Link>
@@ -77,17 +85,19 @@ export function CheckoutDrawer() {
               </Button>
             </DrawerClose>
 
-            <CustomAlertDialog
-              buttonText={"Void Order"}
-              icon={<X />}
-              handler={() => {
-                clearCart();
-              }}
-            />
+            <div className="flex-1">
+              <CustomAlertDialog
+                buttonText={"Void Order"}
+                icon={<X />}
+                handler={() => {
+                  clearCart();
+                }}
+              />
+            </div>
 
-            <Button variant="outline" size={"sm"} className="flex-1">
+            {/* <Button variant="outline" size={"sm"} className="flex-1">
               <Printer /> Print
-            </Button>
+            </Button> */}
           </div>
         </DrawerFooter>
       </DrawerContent>

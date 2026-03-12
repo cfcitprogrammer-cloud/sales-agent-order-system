@@ -64,11 +64,11 @@ export function AddToCartDrawer() {
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>{currentProduct?.name}</DrawerTitle>
-          <DrawerDescription>
+          {/* <DrawerDescription>
             {selectedVariant
               ? `₱${selectedVariant.price | 0}`
               : "Select variant"}
-          </DrawerDescription>
+          </DrawerDescription> */}
         </DrawerHeader>
 
         <div className="overflow-hidden w-full px-4 space-y-4">

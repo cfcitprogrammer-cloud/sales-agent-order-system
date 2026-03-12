@@ -7,17 +7,58 @@ import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
+import { useAuthStore } from "@/stores/auth-store";
 import type { Order } from "@/db/types/order.type";
+import OrderTimeline from "@/components/custom/order-timeline";
+import * as XLSX from "xlsx";
 
-const statuses = ["Pending", "Cancelled", "Approved", "Rejected", "Completed"];
+const statuses = [
+  "Pending",
+  "Cancelled",
+  "Reviewed",
+  "Approved",
+  "Rejected",
+  "Completed",
+];
+
+// Role visibility mapping
+const roleStatusMap: Record<string, string[]> = {
+  logistic: ["Pending", "Cancelled", "Reviewed", "Completed"],
+  agent: ["Cancelled"],
+  accounting: ["Cancelled", "Approved", "Rejected"],
+  admin: statuses,
+};
+
+// Map each status to its timestamp field
+const statusTimestampFieldMap: Record<string, keyof Order> = {
+  Pending: "pending_at",
+  Cancelled: "cancelled_at",
+  Reviewed: "reviewed_at",
+  Approved: "approved_at",
+  Rejected: "rejected_at",
+  Completed: "completed_at",
+};
+
+// Status transition flow
+const statusFlowMap: Record<string, string[]> = {
+  Pending: ["Reviewed", "Cancelled"],
+  Cancelled: [],
+  Reviewed: ["Approved", "Rejected"],
+  Approved: ["Completed"],
+  Rejected: [],
+  Completed: [],
+};
 
 export default function OrderDetailsPage() {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
+  const role = useAuthStore((state) => state.role);
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+
+  const visibleStatuses = role ? (roleStatusMap[role] ?? []) : [];
 
   useEffect(() => {
     if (!orderId) return;
@@ -62,19 +103,62 @@ export default function OrderDetailsPage() {
     if (!order) return;
     setUpdatingStatus(true);
 
+    const timestampField = statusTimestampFieldMap[newStatus];
+
+    const updateData: Partial<Order> = { status: newStatus };
+    if (timestampField)
+      updateData[timestampField] = new Date().toISOString() as any;
+
     const { error } = await supabase
       .from("orders")
-      .update({ status: newStatus })
+      .update(updateData)
       .eq("id", order.id);
 
     if (error) {
       toast.error(error.message || "Failed to update status");
     } else {
-      setOrder({ ...order, status: newStatus });
+      setOrder({ ...order, ...updateData });
       toast.success(`Order status updated to ${newStatus}`);
     }
 
     setUpdatingStatus(false);
+  };
+
+  const exportToExcel = () => {
+    if (!order || !order.order_products) return;
+
+    const data = order.order_products.map((item) => ({
+      "Product Name": item.product_name,
+      "Item Description": item.variant_name,
+      "Item Code": item.sku,
+      UOM: item.uom,
+      Quantity: item.qty,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+
+    // Apply fill color to header row
+    const range = XLSX.utils.decode_range(ws["!ref"]!);
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const cellAddress = XLSX.utils.encode_cell({ r: 0, c: C });
+      if (!ws[cellAddress]) continue;
+
+      ws[cellAddress].s = {
+        fill: {
+          patternType: "solid",
+          fgColor: { rgb: "FFD700" }, // gold
+        },
+        font: {
+          bold: true,
+          color: { rgb: "000000" },
+        },
+      };
+    }
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Order Products");
+
+    XLSX.writeFile(wb, `order_${order.id}_products.xlsx`);
   };
 
   if (loading) return <p className="p-6">Loading order details...</p>;
@@ -85,11 +169,24 @@ export default function OrderDetailsPage() {
     0,
   );
 
+  const allowedStatuses = statuses.filter((status) => {
+    if (!visibleStatuses.includes(status)) return false;
+    if (role === "logistic" && status === "Completed")
+      return order.status === "Approved";
+    const allowedNext = statusFlowMap[order.status] ?? [];
+    return allowedNext.includes(status) || order.status === status;
+  });
+
   return (
     <section className="max-w-6xl mx-auto p-6 space-y-6">
       <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">Order #{order.id}</h1>
-        <Button onClick={() => navigate(-1)}>Back</Button>
+        <div className="flex gap-2">
+          <Button onClick={() => navigate(-1)}>Back</Button>
+          <Button onClick={exportToExcel} variant="outline">
+            Export to Excel
+          </Button>
+        </div>
       </header>
 
       <div className="space-y-2 mt-4">
@@ -122,21 +219,20 @@ export default function OrderDetailsPage() {
       <div className="flex justify-between gap-4">
         <h2 className="text-xl font-semibold">Products</h2>
 
-        <div>
-          <ButtonGroup>
-            {statuses.map((status) => (
-              <Button
-                key={status}
-                variant={order.status === status ? "default" : "outline"}
-                onClick={() => changeStatus(status)}
-                disabled={updatingStatus}
-              >
-                {status}
-              </Button>
-            ))}
-          </ButtonGroup>
-        </div>
+        <ButtonGroup>
+          {allowedStatuses.map((status) => (
+            <Button
+              key={status}
+              variant={order.status === status ? "default" : "outline"}
+              onClick={() => changeStatus(status)}
+              disabled={updatingStatus}
+            >
+              {status}
+            </Button>
+          ))}
+        </ButtonGroup>
       </div>
+
       <div className="space-y-4">
         {order.order_products?.map((item) => (
           <div
@@ -160,23 +256,28 @@ export default function OrderDetailsPage() {
             </div>
             <div className="text-right">
               <p>
-                {item.qty} × ₱{item.price_at_order.toFixed(2)}
+                {/* {item.qty} × ₱{item.price_at_order.toFixed(2)} */}x{" "}
+                {item.qty}
               </p>
               <p className="font-medium">
-                ₱{(item.qty * item.price_at_order).toFixed(2)}
+                {/* ₱{(item.qty * item.price_at_order).toFixed(2)} */}
               </p>
             </div>
           </div>
         ))}
       </div>
 
-      <Separator />
+      {/* <Separator /> */}
 
-      <div className="flex justify-end items-center gap-4">
+      {/* <div className="flex justify-end items-center gap-4">
         <p className="text-lg font-semibold">
           Total: ₱{totalPrice?.toFixed(2)}
         </p>
-      </div>
+      </div> */}
+
+      <Separator />
+
+      <OrderTimeline order={order} />
     </section>
   );
 }

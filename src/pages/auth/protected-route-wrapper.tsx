@@ -1,23 +1,26 @@
 import { useAuthStore } from "@/stores/auth-store";
-import type { JSX } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 
 interface ProtectedRouteProps {
-  children: JSX.Element;
-  allowedRoles: string[]; // e.g., ["admin", "manager"]
+  allowedRoles: string[];
 }
 
-export function ProtectedRoute({
-  children,
-  allowedRoles,
-}: ProtectedRouteProps) {
+export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
   const { user, loading, role } = useAuthStore();
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) {
+    return <p>Loading...</p>;
+  }
 
-  if (!user || !role || !allowedRoles.includes(role)) {
+  // not logged in
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  return children;
+  // role not allowed
+  if (!role || !allowedRoles.includes(role)) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <Outlet />;
 }

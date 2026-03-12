@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { Product } from "@/db/types/product.type";
 import type { ProductVariant } from "@/db/types/product_variant.type";
 import { generateCartId } from "@/lib/utils";
+import { toast } from "sonner";
 
 export interface CartItem {
   cart_id: string;
@@ -48,6 +49,10 @@ export const useCartStore = create<CartState>((set, get) => ({
             : item,
         ),
       });
+
+      toast.success(
+        `Added ${existing.cart_qty} ${existing.uom} of ${existing.product_name} - ${existing.variant_alias} to cart`,
+      );
       return;
     }
 
@@ -70,6 +75,10 @@ export const useCartStore = create<CartState>((set, get) => ({
     set({
       cart: [...cart, newItem],
     });
+
+    toast.success(
+      `Added ${newItem.cart_qty} ${newItem.uom} of ${newItem.product_name} - ${newItem.variant_alias} to cart`,
+    );
   },
 
   removeFromCart: (cartId) => {

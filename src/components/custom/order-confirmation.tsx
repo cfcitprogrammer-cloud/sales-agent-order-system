@@ -40,7 +40,7 @@ export default function OrderConfirmation({
             {item.cart_qty * item.price}
           </p>
         ))}
-        <p className="font-semibold">Total: ₱{totalPrice()}</p>
+        {/* <p className="font-semibold">Total: ₱{totalPrice()}</p> */}
       </div>
 
       <div className="flex gap-2 mt-4">
