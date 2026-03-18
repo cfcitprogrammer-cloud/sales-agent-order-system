@@ -35,3 +35,13 @@ export function formatDateTime(date = new Date()) {
     .format(date)
     .replace(",", "");
 }
+
+export function stringToColor(str: string) {
+  // Hash string to a number
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const h = ((hash % 360) + str.length * 13) % 360;
+  return `hsl(${h}, 50%, 45%)`; // pastel: lower saturation, high lightness
+}

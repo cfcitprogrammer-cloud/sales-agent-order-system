@@ -6,4 +6,6 @@ export type Product = {
   name: string;
   description: string | null;
   product_variant?: ProductVariant[];
+  category: string | null;
+  created_at: string;
 };

@@ -332,7 +332,7 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
           <footer className="space-y-2">
             <Button
               type="submit"
-              className="w-full"
+              className="w-full bg-amber-600 text-white hover:bg-amber-700"
               size="sm"
               disabled={form.formState.isSubmitting}
             >

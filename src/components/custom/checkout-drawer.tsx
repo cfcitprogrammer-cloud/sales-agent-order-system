@@ -73,7 +73,11 @@ export function CheckoutDrawer() {
             <p>₱{totalPrice()}</p>
           </div> */}
           <Link to={"/checkout"}>
-            <Button className="w-full" size={"sm"} disabled={cart.length === 0}>
+            <Button
+              className="w-full bg-amber-600 text-white hover:bg-amber-700"
+              size={"sm"}
+              disabled={cart.length === 0}
+            >
               Place Order
             </Button>
           </Link>

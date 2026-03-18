@@ -16,7 +16,7 @@ export default function IndexPage() {
     <Tabs defaultValue={initialTab} className="w-full mt-12">
       <NavbarComponent />
 
-      <main className="p-4 bg-gray-100">
+      <main className="p-4 bg-gray-100 min-h-screen">
         <TabsContent value="dashboard">
           <DashboardTab />
         </TabsContent>

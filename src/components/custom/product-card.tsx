@@ -5,6 +5,7 @@ import type { Product } from "@/db/types/product.type";
 import { useCartStore } from "@/stores/cart-store";
 import { useProductStore } from "@/stores/product-store";
 import { Badge } from "../ui/badge";
+import { stringToColor } from "@/lib/utils";
 
 type ProductCardProps = {
   product: Product;
@@ -19,8 +20,8 @@ export default function ProductCard({ product }: ProductCardProps) {
   }
 
   return (
-    <Card>
-      <CardContent className="space-y-2">
+    <Card className="flex-col">
+      <CardContent className="space-y-2 flex-1">
         <figure className="overflow-hidden rounded-lg h-48 w-full flex items-center justify-center bg-gray-100">
           <img
             src={product.img_src || undefined}
@@ -33,14 +34,22 @@ export default function ProductCard({ product }: ProductCardProps) {
             {product.product_variant?.length} variants
           </p>
 
-          <Badge>Bihon</Badge>
+          <Badge
+            style={{ backgroundColor: stringToColor(product.category || "") }}
+          >
+            {product.category}
+          </Badge>
         </div>
         <h2 className="font-semibold text-xs">{product.name}</h2>
       </CardContent>
 
       <CardFooter className="flex items-center justify-between gap-1">
         <div className="flex items-center gap-2 flex-1">
-          <Button className="w-full" size={"sm"} onClick={addToCartBtn}>
+          <Button
+            className="w-full bg-amber-600 text-white hover:bg-amber-700"
+            size={"sm"}
+            onClick={addToCartBtn}
+          >
             Add to Cart
           </Button>
         </div>

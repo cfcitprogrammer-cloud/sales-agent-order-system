@@ -62,13 +62,20 @@ export function AddToCartDrawer() {
       onOpenChange={handleClose}
     >
       <DrawerContent>
-        <DrawerHeader>
-          <DrawerTitle>{currentProduct?.name}</DrawerTitle>
-          {/* <DrawerDescription>
-            {selectedVariant
-              ? `₱${selectedVariant.price | 0}`
-              : "Select variant"}
-          </DrawerDescription> */}
+        <DrawerHeader className="flex flex-col gap-2 items-center sm:flex-row sm:items-start">
+          <img
+            src={currentProduct?.img_src || undefined}
+            alt={currentProduct?.name}
+            className="w-25 object-contain"
+          />
+          <div className="text-center sm:text-left">
+            <DrawerTitle>{currentProduct?.name}</DrawerTitle>
+            <DrawerDescription>
+              {selectedVariant
+                ? `${selectedVariant.sku} - ${selectedVariant.alias}`
+                : `Select a variant`}
+            </DrawerDescription>
+          </div>
         </DrawerHeader>
 
         <div className="overflow-hidden w-full px-4 space-y-4">
@@ -137,7 +144,7 @@ export function AddToCartDrawer() {
             </Button>
 
             <Button
-              className="flex-1"
+              className="flex-1 bg-amber-600 text-white hover:bg-amber-700"
               disabled={!selectedVariant}
               onClick={handleAddToCart}
             >

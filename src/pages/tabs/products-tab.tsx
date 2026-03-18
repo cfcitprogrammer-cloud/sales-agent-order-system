@@ -14,10 +14,12 @@ import {
 } from "@/components/ui/tooltip";
 import { useCartStore } from "@/stores/cart-store";
 import { ListFilter, RefreshCw, Search } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 export default function ProductsTab() {
   const { clearCart } = useCartStore();
+  const [searchQuery, setSearchQuery] = useState("");
   // const { user, loading } = useAuthStore();
 
   function handleRefresh() {
@@ -28,11 +30,20 @@ export default function ProductsTab() {
   return (
     <main>
       <header className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Our Products</h2>
+        <div>
+          <h2 className="text-lg font-semibold">Our Products</h2>
+          <p className="text-sm text-muted-foreground">
+            Quality food that brings joy to your day.
+          </p>
+        </div>
 
         <nav className="flex items-center gap-1">
-          <InputGroup>
-            <InputGroupInput type="text" placeholder="Search" />
+          <InputGroup className="bg-white">
+            <InputGroupInput
+              type="text"
+              placeholder="Search"
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
             <InputGroupAddon align="inline-end">
               <Search />
             </InputGroupAddon>
@@ -66,7 +77,7 @@ export default function ProductsTab() {
 
       <section>
         <div>
-          <ProductList />
+          <ProductList searchQuery={searchQuery} />
         </div>
       </section>
     </main>
