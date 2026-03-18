@@ -14,14 +14,20 @@ function App() {
   return (
     <Routes>
       {/* ADMIN ONLY */}
-      <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+      <Route
+        element={
+          <ProtectedRoute
+            allowedRoles={["admin", "sales", "accounting", "logistics"]}
+          />
+        }
+      >
         <Route path="/:tab/:pageNumber" element={<IndexPage />} />
-      </Route>
-
-      {/* ADMIN + AGENT */}
-      <Route element={<ProtectedRoute allowedRoles={["admin", "agent"]} />}>
         <Route path="/order/details/:orderId" element={<OrderDetailsPage />} />
       </Route>
+
+      {/* ADMIN + AGENT
+      <Route element={<ProtectedRoute allowedRoles={["admin", "sa"]} />}>
+      </Route> */}
 
       {/* AGENT ONLY */}
       <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>

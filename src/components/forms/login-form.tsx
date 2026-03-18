@@ -25,7 +25,7 @@ export function LoginForm({
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { signIn, role } = useAuthStore();
+  const { signIn } = useAuthStore();
   const navigate = useNavigate();
 
   async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
@@ -33,9 +33,9 @@ export function LoginForm({
     setLoading(true);
 
     try {
-      await signIn({ email, password });
+      const userRole = await signIn({ email, password });
 
-      if (role) {
+      if (userRole) {
         navigate("/products/1", { replace: true });
       } else {
         toast.error(

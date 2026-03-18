@@ -26,17 +26,30 @@ export default function NavbarComponent() {
   }
 
   return (
-    <header className="flex justify-between items-center p-4">
-      <p>Sales Agent Booking</p>
+    <header className="flex justify-between items-center px-4 py-2 fixed top-0 left-0 w-full bg-white z-10">
+      <p className="text-sm font-semibold text-amber-600">
+        Sales Agent Booking
+      </p>
 
       <TabsList className="w-[400px]">
-        <TabsTrigger value="dashboard">
+        <TabsTrigger
+          value="dashboard"
+          className="data-[state=active]:bg-amber-500 data-[state=active]:text-white"
+        >
           <ReceiptText /> Dashboard
         </TabsTrigger>
-        <TabsTrigger value="products">
+
+        <TabsTrigger
+          value="products"
+          className="data-[state=active]:bg-amber-500 data-[state=active]:text-white"
+        >
           <ShoppingBag /> Products
         </TabsTrigger>
-        <TabsTrigger value="orders">
+
+        <TabsTrigger
+          value="orders"
+          className="data-[state=active]:bg-amber-500 data-[state=active]:text-white"
+        >
           <ReceiptText /> Orders
         </TabsTrigger>
       </TabsList>

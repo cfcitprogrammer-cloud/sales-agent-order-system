@@ -9,7 +9,10 @@ interface AuthState {
   loading: boolean;
 
   // actions
-  signIn: (credentials: { email: string; password: string }) => Promise<void>;
+  signIn: (credentials: {
+    email: string;
+    password: string;
+  }) => Promise<string | null>;
   register: (credentials: {
     email: string;
     password: string;
@@ -34,8 +37,16 @@ export const useAuthStore = create<AuthState>((set) => {
 
   // Listen for auth state changes globally
   supabase.auth.onAuthStateChange((_event, session) => {
-    const userRole = session?.user?.app_metadata?.role ?? null;
-    set({ session, user: session?.user ?? null, role: userRole });
+    set((state) => {
+      const newRole = session?.user?.app_metadata?.role;
+
+      return {
+        session,
+        user: session?.user ?? null,
+        role: newRole ?? state.role, // ✅ don't overwrite with null
+        loading: false,
+      };
+    });
   });
 
   return {
@@ -62,6 +73,8 @@ export const useAuthStore = create<AuthState>((set) => {
         user: data.session?.user ?? null,
         role: data.session?.user?.app_metadata?.role ?? null,
       });
+
+      return data.session?.user?.app_metadata?.role ?? null;
     },
 
     register: async ({ email, password, name, role }) => {

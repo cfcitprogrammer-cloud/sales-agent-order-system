@@ -9,27 +9,63 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { useAuthStore } from "@/stores/auth-store";
+import { LogOut } from "lucide-react";
 
 export default function NavUser() {
-  const { user, role } = useAuthStore();
+  const { user, role, signOut } = useAuthStore();
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Avatar name={user?.email} size={28} />
+      <DropdownMenuTrigger
+        asChild
+        className="p-1 hover:bg-amber-500/20 rounded"
+      >
+        <div className="flex gap-2">
+          <Avatar
+            name={user?.email}
+            colors={["#4d4250", "#b66e6f", "#cf8884", "#e6a972", "#f6d169"]}
+            variant="beam"
+            square
+            size={32}
+            className="rounded overflow-hidden"
+          />
+
+          <div>
+            <p className="text-xs font-semibold">
+              {user?.user_metadata.name || user?.email}
+            </p>
+            <p className="text-xs text-gray-500">{role}</p>
+          </div>
+        </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuGroup>
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
-          <DropdownMenuSeparator />
           <DropdownMenuLabel>
-            <p>
-              <strong className="font-semibold">Name:</strong>{" "}
-              {user?.user_metadata.name || user?.email}
-            </p>
-            <p>
-              <strong className="font-semibold">Role:</strong> {role}
-            </p>
+            <div className="flex gap-2">
+              <Avatar
+                name={user?.email}
+                colors={["#4d4250", "#b66e6f", "#cf8884", "#e6a972", "#f6d169"]}
+                variant="beam"
+                square
+                size={32}
+                className="rounded overflow-hidden"
+              />
+
+              <div>
+                <p className="text-xs font-semibold">
+                  {user?.user_metadata.name || user?.email}
+                </p>
+                <p className="text-xs text-gray-500">{role}</p>
+              </div>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem className="text-xs" onClick={signOut}>
+            <LogOut /> Log Out
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel className="text-xs">
+            Version 1.0.0
           </DropdownMenuLabel>
         </DropdownMenuGroup>
       </DropdownMenuContent>

@@ -13,10 +13,10 @@ export default function IndexPage() {
   const initialTab = params.tab;
 
   return (
-    <Tabs defaultValue={initialTab} className="w-full">
+    <Tabs defaultValue={initialTab} className="w-full mt-12">
       <NavbarComponent />
 
-      <main className="p-4">
+      <main className="p-4 bg-gray-100">
         <TabsContent value="dashboard">
           <DashboardTab />
         </TabsContent>
