@@ -22,11 +22,12 @@ import TableView from "./orders/table-view";
 import { Grid2x2, List, Search } from "lucide-react";
 
 const statusOptions = [
-  "pending",
-  "cancelled",
-  "approved",
-  "rejected",
-  "completed",
+  "All",
+  "Pending",
+  "Cancelled",
+  "Approved",
+  "Rejected",
+  "Completed",
 ];
 
 export default function OrdersTab() {
@@ -54,7 +55,7 @@ export default function OrdersTab() {
 
         <div className="flex items-center gap-2">
           <Select onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-40 bg-white">
               <SelectValue placeholder="Filter Status" />
             </SelectTrigger>
             <SelectContent>
@@ -66,7 +67,7 @@ export default function OrdersTab() {
             </SelectContent>
           </Select>
 
-          <InputGroup>
+          <InputGroup className="bg-white">
             <InputGroupInput
               type="text"
               placeholder="Search orders"
@@ -83,7 +84,7 @@ export default function OrdersTab() {
             size="sm"
             value={view}
             onValueChange={(val: "card" | "table") => setView(val)}
-            className="border rounded"
+            className="border rounded bg-white"
           >
             <ToggleGroupItem size="sm" value="card">
               <Grid2x2 size={16} />

@@ -1,4 +1,4 @@
-import { LogOut, ReceiptText, Settings, ShoppingBag } from "lucide-react";
+import { LogOut, Menu, ReceiptText, Settings, ShoppingBag } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import { Button } from "../ui/button";
 import Avatar from "boring-avatars";
@@ -7,6 +7,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 
 export default function NavbarComponent() {
   const { signOut } = useAuthStore();
@@ -31,7 +32,7 @@ export default function NavbarComponent() {
         Sales Agent Booking
       </p>
 
-      <TabsList className="w-[400px]">
+      <TabsList className="w-[400px] hidden md:block">
         <TabsTrigger
           value="dashboard"
           className="data-[state=active]:bg-amber-500 data-[state=active]:text-white"
@@ -54,7 +55,7 @@ export default function NavbarComponent() {
         </TabsTrigger>
       </TabsList>
 
-      <div className="right-side flex gap-1 items-center">
+      <div className="hidden md:flex right-side gap-1 items-center">
         <Button
           // asChild
           size={"icon-sm"}
@@ -69,6 +70,55 @@ export default function NavbarComponent() {
           <Settings />
         </Button> */}
         <NavUser />
+      </div>
+
+      <div className="block md:hidden">
+        <Dialog>
+          <DialogTrigger>
+            <Menu />
+          </DialogTrigger>
+          <DialogContent>
+            <TabsList className="w-full flex flex-col mt-6">
+              <TabsTrigger
+                value="dashboard"
+                className="data-[state=active]:bg-amber-500 data-[state=active]:text-white w-full"
+              >
+                <ReceiptText /> Dashboard
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="products"
+                className="data-[state=active]:bg-amber-500 data-[state=active]:text-white w-full"
+              >
+                <ShoppingBag /> Products
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="orders"
+                className="data-[state=active]:bg-amber-500 data-[state=active]:text-white w-full"
+              >
+                <ReceiptText /> Orders
+              </TabsTrigger>
+            </TabsList>
+
+            <div className="right-side flex flex-col gap-1 items-center">
+              <Button
+                // asChild
+                size={"icon-sm"}
+                className="rounded-full w-full"
+                variant={"outline"}
+                onClick={logOut}
+              >
+                <LogOut /> Log Out
+              </Button>
+              {/* 
+        <Button size={"icon-sm"} className="rounded-full" variant={"outline"}>
+          <Settings />
+        </Button> */}
+              <NavUser />
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </header>
   );

@@ -14,12 +14,14 @@ import CheckoutItemCard from "./checkout-item-card";
 import { Separator } from "../ui/separator";
 import { useCartStore } from "@/stores/cart-store";
 import { formatDateTime, generateCartId } from "@/lib/utils";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import CustomAlertDialog from "./dialogs/alert-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 export function CheckoutDrawer() {
   const { cart, totalPrice, clearCart } = useCartStore();
+
+  const navigate = useNavigate();
 
   return (
     <Drawer direction="right">
@@ -72,15 +74,14 @@ export function CheckoutDrawer() {
             <p>Amount to be Paid</p>
             <p>₱{totalPrice()}</p>
           </div> */}
-          <Link to={"/checkout"}>
-            <Button
-              className="w-full bg-amber-600 text-white hover:bg-amber-700"
-              size={"sm"}
-              disabled={cart.length === 0}
-            >
-              Place Order
-            </Button>
-          </Link>
+          <Button
+            className="w-full bg-amber-600 text-white hover:bg-amber-700"
+            size={"sm"}
+            disabled={cart.length === 0}
+            onClick={() => navigate("/checkout")}
+          >
+            Place Order
+          </Button>
 
           <div className="flex gap-1">
             <DrawerClose asChild className="flex-1">

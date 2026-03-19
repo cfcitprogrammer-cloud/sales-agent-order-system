@@ -140,7 +140,7 @@ export default function CardView({
               </CardHeader>
 
               {/* BODY */}
-              <CardContent className="space-y-3 text-sm p-4">
+              <CardContent className="space-y-3 text-sm p-4 flex-1 ">
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <div>
                     <p className="font-semibold">Created At</p>
@@ -195,7 +195,10 @@ export default function CardView({
               {/* FOOTER */}
               <CardFooter className="p-3">
                 <Link to={`/order/details/${order.id}`} className="w-full">
-                  <Button size="sm" className="w-full">
+                  <Button
+                    size="sm"
+                    className="w-full bg-amber-600 text-white hover:bg-amber-700"
+                  >
                     View Order
                   </Button>
                 </Link>

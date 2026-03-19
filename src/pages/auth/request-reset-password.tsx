@@ -46,7 +46,10 @@ export default function RequestChangePasswordPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-            <Button className="w-full" disabled={isLoading}>
+            <Button
+              className="w-full bg-amber-600 text-white hover:bg-amber-700"
+              disabled={isLoading}
+            >
               {isLoading ? <Spinner /> : "Request Change Password"}
             </Button>
             <Link to={"/login"}>

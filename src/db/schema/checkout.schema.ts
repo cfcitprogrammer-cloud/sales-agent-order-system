@@ -3,13 +3,10 @@ import { z } from "zod";
 // Checkout form values now map directly to your `Order` type
 export const checkoutSchema = z.object({
   customerName: z.string().min(1, "Customer name is required"), // maps to customer_name
-  contactNumber: z.string().optional(), // maps to contact_number
-  email: z.string().email().optional(),
-  address: z.string().min(1, "Address is required"),
+  bpCode: z.string().min(1, "BP code is required"), // maps to bp_code
   city: z.string().optional(),
-  province: z.string().optional(),
-  coor: z.string().optional(),
-  deliveryDate: z.string().optional(), // maps to delivery_date
+  street: z.string().optional(),
+  deliveryDate: z.string().min(1, "Delivery date is required"), // maps to delivery_date
   notes: z.string().optional(),
 
   // Cart items must be non-empty and match CartItem

@@ -180,26 +180,29 @@ export default function OrderDetailsPage() {
   return (
     <section className="max-w-6xl mx-auto p-6 space-y-6">
       <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Order #{order.id}</h1>
+        <h1 className="font-semibold">Order #{order.id}</h1>
         <div className="flex gap-2">
-          <Button onClick={() => navigate(-1)}>Back</Button>
-          <Button onClick={exportToExcel} variant="outline">
+          <Button size={"sm"} onClick={() => navigate(-1)}>
+            Back
+          </Button>
+          <Button size={"sm"} onClick={exportToExcel} variant="outline">
             Export to Excel
           </Button>
         </div>
       </header>
 
-      <div className="space-y-2 mt-4">
+      <div className="space-y-2 mt-4 text-sm">
+        <p>
+          <strong>BP Code:</strong> {order.bp_code ?? "N/A"}
+        </p>
         <p>
           <strong>Customer:</strong> {order.customer_name}
         </p>
         <p>
-          <strong>Contact:</strong> {order.contact_number ?? "N/A"} |{" "}
-          {order.email ?? "N/A"}
+          <strong>Street:</strong> {order.street ?? "N/A"}
         </p>
         <p>
-          <strong>Address:</strong> {order.address}, {order.city},{" "}
-          {order.province}
+          <strong>City:</strong> {order.city ?? "N/A"}
         </p>
         <p>
           <strong>Delivery Date:</strong> {order.delivery_date ?? "N/A"}
@@ -217,15 +220,16 @@ export default function OrderDetailsPage() {
       <Separator />
 
       <div className="flex justify-between gap-4">
-        <h2 className="text-xl font-semibold">Products</h2>
+        <h2 className="font-semibold">Products</h2>
 
         <ButtonGroup>
           {allowedStatuses.map((status) => (
             <Button
+              size={"sm"}
               key={status}
               variant={order.status === status ? "default" : "outline"}
               onClick={() => changeStatus(status)}
-              disabled={updatingStatus}
+              disabled={updatingStatus || order.status === status}
             >
               {status}
             </Button>

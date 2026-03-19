@@ -1,8 +1,7 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { supabase } from "@/lib/supabase";
 
 import {
   Form,
@@ -12,6 +11,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -29,9 +29,6 @@ import {
   checkoutSchema,
   type CheckoutFormValues,
 } from "@/db/schema/checkout.schema";
-import type { Province, City } from "@/db/types/places";
-import rawProvincesData from "@/db/data/provinces.json";
-import rawCitiesData from "@/db/data/cities.json";
 
 import { useCartStore } from "@/stores/cart-store";
 import CheckoutItemCard from "../custom/checkout-item-card";
@@ -48,9 +45,6 @@ type CheckoutFormProps = {
 };
 
 export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
-  const provinces: Province[] = rawProvincesData as Province[];
-  const cities: City[] = rawCitiesData as City[];
-
   const {
     cart,
     clearCart,
@@ -58,17 +52,20 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
     decreaseQuantity,
     removeFromCart,
   } = useCartStore();
-  const [error, setError] = useState("");
+
   const navigate = useNavigate();
+
+  const [customerQuery, setCustomerQuery] = useState("");
+  const [customerResults, setCustomerResults] = useState<any[]>([]);
+  const [loadingCustomers, setLoadingCustomers] = useState(false);
+  const [error, setError] = useState("");
 
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
       customerName: "",
-      contactNumber: "",
-      email: "",
-      address: "",
-      province: "",
+      bpCode: "",
+      street: "",
       city: "",
       deliveryDate: "",
       notes: "",
@@ -76,28 +73,36 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
     },
   });
 
-  const selectedProvinceName = form.watch("province");
-
-  useEffect(() => {
-    form.setValue("city", "");
-  }, [selectedProvinceName, form]);
-
+  // Sync cart
   useEffect(() => {
     form.setValue("cart", cart);
   }, [cart, form]);
 
-  const selectedProvinceKey = provinces.find(
-    (p) => p.name === selectedProvinceName,
-  )?.key;
+  // 🔍 Debounced search
+  useEffect(() => {
+    const delayDebounce = setTimeout(async () => {
+      if (!customerQuery) {
+        setCustomerResults([]);
+        return;
+      }
 
-  const filteredCities = cities.filter(
-    (c) => c.province === selectedProvinceKey,
-  );
+      setLoadingCustomers(true);
 
-  const totalAmount = cart.reduce(
-    (acc, item) => acc + item.price * item.cart_qty,
-    0,
-  );
+      const { data, error } = await supabase
+        .from("bpmd")
+        .select("*")
+        .ilike("customer_name", `%${customerQuery}%`)
+        .limit(5);
+
+      if (!error) {
+        setCustomerResults(data || []);
+      }
+
+      setLoadingCustomers(false);
+    }, 300);
+
+    return () => clearTimeout(delayDebounce);
+  }, [customerQuery]);
 
   function clearCartAndBack() {
     clearCart();
@@ -119,19 +124,33 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
               navigate("/products/1", { replace: true });
               toast.success("Order placed successfully");
             } else {
-              toast.error("Failed to place order. Please try again.");
+              toast.error("Failed to place order.");
             }
           },
           (errors) => {
-            console.log(errors);
             if (errors.cart) setError(errors.cart.message || "");
-            toast.error("Failed to place order. Please try again.");
+            toast.error("Validation failed.");
           },
         )}
         className="grid grid-cols-2 gap-4"
       >
-        {/* Left: Customer info */}
+        {/* LEFT */}
         <div className="space-y-4">
+          {/* BP CODE */}
+          <FormField
+            control={form.control}
+            name="bpCode"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>BP Code</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          {/* 🔍 CUSTOMER SEARCH */}
           <FormField
             control={form.control}
             name="customerName"
@@ -139,150 +158,100 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
               <FormItem>
                 <FormLabel>Customer Name</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Combobox
+                    onValueChange={(value) => {
+                      const selected = customerResults.find(
+                        (c) => c.id === value,
+                      );
+
+                      console.log("SELECTED:", selected); // 👈 debug
+
+                      if (selected) {
+                        // ✅ Correct mapping
+                        field.onChange(selected.customer_name);
+
+                        form.setValue("street", selected.ship_to_street || "");
+                        form.setValue("city", selected.ship_to_city || "");
+                        form.setValue("bpCode", selected.bp_code || "");
+                      }
+                    }}
+                  >
+                    <ComboboxInput
+                      placeholder="Search customer..."
+                      value={field.value}
+                      onChange={(e) => {
+                        field.onChange(e.target.value);
+                        setCustomerQuery(e.target.value);
+                      }}
+                    />
+
+                    <ComboboxContent>
+                      <ComboboxList>
+                        {loadingCustomers && (
+                          <p className="p-2 text-sm">Searching...</p>
+                        )}
+
+                        {!loadingCustomers && customerResults.length === 0 && (
+                          <ComboboxEmpty>No customers found</ComboboxEmpty>
+                        )}
+
+                        {customerResults.map((customer) => (
+                          <ComboboxItem key={customer.id} value={customer.id}>
+                            {customer.customer_name}
+                          </ComboboxItem>
+                        ))}
+                      </ComboboxList>
+                    </ComboboxContent>
+                  </Combobox>
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
+          {/* STREET */}
           <FormField
             control={form.control}
-            name="contactNumber"
+            name="street"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Contact Number</FormLabel>
+                <FormLabel>Street</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />
 
+          {/* CITY */}
           <FormField
             control={form.control}
-            name="email"
+            name="city"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>City</FormLabel>
                 <FormControl>
-                  <Input type="email" {...field} />
+                  <Input {...field} />
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />
 
+          {/* DELIVERY DATE */}
           <FormField
             control={form.control}
-            name="address"
+            name="deliveryDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Address</FormLabel>
+                <FormLabel>Delivery Date</FormLabel>
                 <FormControl>
-                  <Textarea {...field} />
+                  <Input type="date" {...field} />
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Province & City */}
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <FormField
-                control={form.control}
-                name="province"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Province</FormLabel>
-                    <FormControl>
-                      <Combobox
-                        items={provinces.map((p) => p.name)}
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <ComboboxInput
-                          placeholder="Select a province"
-                          showClear
-                        />
-                        <ComboboxContent>
-                          <ComboboxEmpty>No province found</ComboboxEmpty>
-                          <ComboboxList>
-                            {provinces.map((p) => (
-                              <ComboboxItem key={p.key} value={p.name}>
-                                {p.name}
-                              </ComboboxItem>
-                            ))}
-                          </ComboboxList>
-                        </ComboboxContent>
-                      </Combobox>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="flex-1">
-              <FormField
-                control={form.control}
-                name="city"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>City</FormLabel>
-                    <FormControl>
-                      <Combobox
-                        items={filteredCities.map((c) => c.name)}
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        disabled={!selectedProvinceName}
-                      >
-                        <ComboboxInput
-                          placeholder={
-                            selectedProvinceName
-                              ? "Select a city"
-                              : "Select a province first"
-                          }
-                          showClear
-                        />
-                        <ComboboxContent>
-                          <ComboboxEmpty>No city found</ComboboxEmpty>
-                          <ComboboxList>
-                            {filteredCities.map((city) => (
-                              <ComboboxItem key={city.name} value={city.name}>
-                                {city.name}
-                              </ComboboxItem>
-                            ))}
-                          </ComboboxList>
-                        </ComboboxContent>
-                      </Combobox>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-
-          {/* Delivery Date & Time */}
-          <div className="grid grid-cols-1 gap-4">
-            <FormField
-              control={form.control}
-              name="deliveryDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Delivery Date</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
+          {/* NOTES */}
           <FormField
             control={form.control}
             name="notes"
@@ -292,13 +261,12 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
                 <FormControl>
                   <Textarea {...field} />
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />
         </div>
 
-        {/* Right: Cart */}
+        {/* RIGHT */}
         <div className="space-y-2">
           <h1 className="text-lg font-semibold">Your Cart</h1>
 
@@ -310,24 +278,17 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
             </Alert>
           )}
 
-          <div className="space-y-2">
-            {cart.map((item) => (
-              <CheckoutItemCard
-                key={item.cart_id}
-                item={item}
-                onIncrease={() => increaseQuantity(item.cart_id)}
-                onDecrease={() => decreaseQuantity(item.cart_id)}
-                onRemove={() => removeFromCart(item.cart_id)}
-              />
-            ))}
-          </div>
+          {cart.map((item) => (
+            <CheckoutItemCard
+              key={item.cart_id}
+              item={item}
+              onIncrease={() => increaseQuantity(item.cart_id)}
+              onDecrease={() => decreaseQuantity(item.cart_id)}
+              onRemove={() => removeFromCart(item.cart_id)}
+            />
+          ))}
 
           <Separator />
-
-          {/* <div className="flex items-center justify-between gap-1">
-            <p className="text-md font-semibold">Amount total</p>
-            <p className="text-sm">₱{totalAmount}</p>
-          </div> */}
 
           <footer className="space-y-2">
             <Button
@@ -339,7 +300,7 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
               {form.formState.isSubmitting ? <Spinner /> : "Submit Order"}
             </Button>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2">
               <Button
                 type="button"
                 variant="outline"
@@ -349,6 +310,7 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
               >
                 Back
               </Button>
+
               <div className="flex-1">
                 <CustomAlertDialog
                   buttonText="Clear Cart"

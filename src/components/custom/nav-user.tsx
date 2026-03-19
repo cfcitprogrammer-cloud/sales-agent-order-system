@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { useAuthStore } from "@/stores/auth-store";
-import { LogOut } from "lucide-react";
+import { Cog, LogOut } from "lucide-react";
 
 export default function NavUser() {
   const { user, role, signOut } = useAuthStore();
@@ -60,6 +60,9 @@ export default function NavUser() {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          <DropdownMenuItem className="text-xs" onClick={signOut}>
+            <Cog /> Change Password
+          </DropdownMenuItem>
           <DropdownMenuItem className="text-xs" onClick={signOut}>
             <LogOut /> Log Out
           </DropdownMenuItem>

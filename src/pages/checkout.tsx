@@ -27,12 +27,9 @@ export default function CheckoutPage() {
       const { error } = await supabase.rpc("create_order_with_items", {
         order_data: {
           customer_name: values.customerName,
-          contact_number: values.contactNumber ?? null,
-          email: values.email ?? null,
-          address: values.address,
+          bp_code: values.bpCode ?? null,
+          street: values.street ?? null,
           city: values.city ?? null,
-          province: values.province ?? null,
-          coor: values.coor ?? null,
           delivery_date:
             values.deliveryDate &&
             !isNaN(new Date(values.deliveryDate).getTime())

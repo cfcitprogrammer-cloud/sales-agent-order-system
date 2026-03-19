@@ -112,7 +112,11 @@ export function LoginForm({
           </Link>
 
           <Field>
-            <Button type="submit" disabled={loading}>
+            <Button
+              className="bg-amber-600 text-white hover:bg-amber-700"
+              type="submit"
+              disabled={loading}
+            >
               {loading ? <Spinner /> : "Login"}
             </Button>
           </Field>

@@ -1,19 +1,25 @@
-import { Tabs, TabsContent } from "../components/ui/tabs";
-import { useParams } from "react-router-dom";
-
+import { useLocation, useNavigate } from "react-router-dom";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import NavbarComponent from "@/components/custom/navbar";
 import DashboardTab from "./tabs/dashboard-tab";
 import ProductsTab from "./tabs/products-tab";
 import OrdersTab from "./tabs/orders-tab";
 
-export default function IndexPage() {
-  const params = useParams<{ tab: string; pageNumber: string }>();
+export default function AppTabs() {
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // If URL is /orders/page/:pageNumber, activate orders tab
-  const initialTab = params.tab;
+  // Determine initial tab from URL
+  const initialTab = location.pathname.split("/")[1] || "dashboard";
 
   return (
-    <Tabs defaultValue={initialTab} className="w-full mt-12">
+    <Tabs
+      value={initialTab}
+      onValueChange={(tab) => {
+        navigate(`/${tab}/1`);
+      }}
+      className="w-full mt-12"
+    >
       <NavbarComponent />
 
       <main className="p-4 bg-gray-100 min-h-screen">
