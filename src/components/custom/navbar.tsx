@@ -32,7 +32,7 @@ export default function NavbarComponent() {
         Sales Agent Booking
       </p>
 
-      <TabsList className="w-[400px] hidden md:block">
+      <TabsList className="hidden md:block">
         <TabsTrigger
           value="dashboard"
           className="data-[state=active]:bg-amber-500 data-[state=active]:text-white"

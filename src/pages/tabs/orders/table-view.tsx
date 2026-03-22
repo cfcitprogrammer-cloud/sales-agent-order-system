@@ -23,6 +23,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Spinner } from "@/components/ui/spinner";
+import { ChevronDown } from "lucide-react";
 
 interface TableViewProps {
   page: number;
@@ -50,9 +52,9 @@ const statusTimestampFieldMap: Record<string, keyof Order> = {
 };
 
 const roleStatusMap: Record<string, string[]> = {
-  logistic: ["Pending", "Cancelled", "Reviewed", "Completed"],
-  agent: ["Cancelled"],
-  accounting: ["Cancelled", "Approved", "Rejected"],
+  logistic: ["Cancelled", "Reviewed", "Completed"],
+  sales: ["Cancelled"],
+  accounting: ["Cancelled", "Pending", "Approved", "Rejected"],
   admin: [
     "Pending",
     "Cancelled",
@@ -73,11 +75,13 @@ export default function TableView({
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [updatingIds, setUpdatingIds] = useState<number[]>([]);
+  const [loading, setLoading] = useState(false)
   const pageSize = 10;
   const role = useAuthStore((state) => state.role);
 
   useEffect(() => {
     async function fetchOrders() {
+      setLoading(true)
       let query = supabase
         .from("orders")
         .select("*", { count: "exact" })
@@ -90,11 +94,13 @@ export default function TableView({
       const { data, count, error } = await query;
       if (error) {
         toast.error(error.message);
+        setLoading(false)
         return;
       }
       setOrders(data || []);
       setTotalPages(Math.ceil((count ?? 0) / pageSize));
       setSelectedIds([]);
+      setLoading(false)
     }
 
     fetchOrders();
@@ -135,15 +141,16 @@ export default function TableView({
     if (timestampField)
       updateData[timestampField] = new Date().toISOString() as any;
 
+    const tloading = toast.loading("Updating order status...")
     const { error } = await supabase
       .from("orders")
       .update(updateData)
       .eq("id", order.id);
 
     if (error) {
-      toast.error(error.message || "Failed to update status");
+      toast.error(error.message || "Failed to update status", {id: tloading});
     } else {
-      toast.success(`Order #${order.id} updated to ${newStatus}`);
+      toast.success(`Order #${order.id} updated to ${newStatus}`, {id: tloading});
       setOrders((prev) =>
         prev.map((o) => (o.id === order.id ? { ...o, ...updateData } : o)),
       );
@@ -162,6 +169,12 @@ export default function TableView({
     }
     setSelectedIds([]);
   };
+
+  if (loading) {
+    return <div className="w-full h-60 flex items-center justify-center">
+      <Spinner />
+    </div>
+  }
 
   return (
     <div className="space-y-4">
@@ -193,7 +206,8 @@ export default function TableView({
         </DropdownMenu>
       )}
 
-      <Table>
+      <div className="bg-white p-2 rounded">
+        <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="w-[50px]">
@@ -206,10 +220,8 @@ export default function TableView({
                 }
               />
             </TableHead>
+            <TableHead>BP Code</TableHead>
             <TableHead>Customer</TableHead>
-            <TableHead>Contact</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Address</TableHead>
             <TableHead>Delivery Date</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Actions</TableHead>
@@ -227,12 +239,8 @@ export default function TableView({
                     onCheckedChange={() => toggleSelection(order.id)}
                   />
                 </TableCell>
+                <TableCell>{order.bp_code}</TableCell>
                 <TableCell>{order.customer_name}</TableCell>
-                <TableCell>{order.contact_number ?? "N/A"}</TableCell>
-                <TableCell>{order.email ?? "N/A"}</TableCell>
-                <TableCell>
-                  {order.address}, {order.city}, {order.province}
-                </TableCell>
                 <TableCell>{order.delivery_date ?? "N/A"}</TableCell>
                 <TableCell>
                   <DropdownMenu>
@@ -243,14 +251,22 @@ export default function TableView({
                         disabled={updatingIds.includes(order.id)}
                       >
                         {order.status}
+                        <ChevronDown />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
                       {visibleStatuses
                         .filter((status) => {
+                          const allowedStatuses = roleStatusMap[role || ""] || [];
+
+                          // check if status is allowed for role
+                          if (!allowedStatuses.includes(status)) return false;
+
+                          // additional rule for logistic "Completed"
                           if (role === "logistic" && status === "Completed") {
                             return order.status === "Approved";
                           }
+
                           return true;
                         })
                         .map((status) => (
@@ -276,6 +292,7 @@ export default function TableView({
           })}
         </TableBody>
       </Table>
+      </div>
 
       {/* Pagination */}
       <div className="flex justify-center gap-2 mt-4">

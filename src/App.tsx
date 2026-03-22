@@ -13,11 +13,11 @@ import { ProtectedRoute } from "./pages/auth/protected-route-wrapper";
 function App() {
   return (
     <Routes>
-      {/* ADMIN ONLY */}
+      {/* ALL ONLY */}
       <Route
         element={
           <ProtectedRoute
-            allowedRoles={["admin", "sales", "accounting", "logistics"]}
+            allowedRoles={["admin", "sales", "accounting", "logistic"]}
           />
         }
       >
@@ -25,12 +25,8 @@ function App() {
         <Route path="/order/details/:orderId" element={<OrderDetailsPage />} />
       </Route>
 
-      {/* ADMIN + AGENT
-      <Route element={<ProtectedRoute allowedRoles={["admin", "sa"]} />}>
-      </Route> */}
-
       {/* AGENT ONLY */}
-      <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+      <Route element={<ProtectedRoute allowedRoles={["admin", "sales"]} />}>
         <Route path="/checkout" element={<CheckoutPage />} />
       </Route>
 

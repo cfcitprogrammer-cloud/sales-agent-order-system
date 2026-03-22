@@ -120,7 +120,6 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
           async (data) => {
             const isSuccess = await onSubmit(data);
             if (isSuccess) {
-              form.reset();
               navigate("/products/1", { replace: true });
               toast.success("Order placed successfully");
             } else {
@@ -132,7 +131,7 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
             toast.error("Validation failed.");
           },
         )}
-        className="grid grid-cols-2 gap-4"
+        className="grid grid-cols-1 sm:grid-cols-2 gap-4"
       >
         {/* LEFT */}
         <div className="space-y-4">

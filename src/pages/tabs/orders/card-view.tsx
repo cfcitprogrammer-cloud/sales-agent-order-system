@@ -12,6 +12,7 @@ import { orderStatusConfig } from "@/lib/order-status";
 import { Calendar } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Link } from "react-router-dom";
+import { Spinner } from "@/components/ui/spinner";
 
 interface CardViewProps {
   page: number;
@@ -28,6 +29,7 @@ export default function CardView({
 }: CardViewProps) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false)
 
   const pageSize = 9;
 
@@ -74,6 +76,8 @@ export default function CardView({
 
   useEffect(() => {
     async function fetchOrders() {
+      setLoading(true)
+
       let query = supabase
         .from("orders")
         .select("*", { count: "exact" })
@@ -87,15 +91,23 @@ export default function CardView({
 
       if (error) {
         console.error(error);
+        setLoading(false)
         return;
       }
 
       setOrders(data || []);
       setTotalPages(Math.ceil((count ?? 0) / pageSize));
+      setLoading(false)
     }
 
     fetchOrders();
   }, [page, statusFilter, searchTerm]);
+
+  if (loading) {
+    return <div className="w-full h-60 flex items-center justify-center">
+      <Spinner />
+    </div>
+  }
 
   return (
     <div className="space-y-6">

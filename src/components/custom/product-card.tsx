@@ -6,6 +6,7 @@ import { useCartStore } from "@/stores/cart-store";
 import { useProductStore } from "@/stores/product-store";
 import { Badge } from "../ui/badge";
 import { stringToColor } from "@/lib/utils";
+import { useAuthStore } from "@/stores/auth-store";
 
 type ProductCardProps = {
   product: Product;
@@ -13,6 +14,7 @@ type ProductCardProps = {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const { setCurrentProduct, setAddToCartOpen } = useProductStore();
+  const { role } = useAuthStore()
 
   function addToCartBtn() {
     setCurrentProduct(product);
@@ -45,13 +47,14 @@ export default function ProductCard({ product }: ProductCardProps) {
 
       <CardFooter className="flex items-center justify-between gap-1">
         <div className="flex items-center gap-2 flex-1">
-          <Button
+          {["sales", "admin"].includes(role!) && <Button
             className="w-full bg-amber-600 text-white hover:bg-amber-700"
             size={"sm"}
             onClick={addToCartBtn}
+            disabled={!["sales", "admin"].includes(role!)}
           >
             Add to Cart
-          </Button>
+          </Button>}
         </div>
       </CardFooter>
     </Card>

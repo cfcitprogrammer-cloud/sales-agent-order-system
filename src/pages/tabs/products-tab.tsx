@@ -29,7 +29,7 @@ export default function ProductsTab() {
 
   return (
     <main>
-      <header className="flex justify-between items-center mb-4">
+      <header className="flex flex-wrap justify-between items-center mb-4 gap-2">
         <div>
           <h2 className="text-lg font-semibold">Our Products</h2>
           <p className="text-sm text-muted-foreground">

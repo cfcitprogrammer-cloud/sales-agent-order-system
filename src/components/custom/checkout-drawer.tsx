@@ -17,18 +17,21 @@ import { formatDateTime, generateCartId } from "@/lib/utils";
 import { Link, useNavigate } from "react-router-dom";
 import CustomAlertDialog from "./dialogs/alert-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { useAuthStore } from "@/stores/auth-store";
 
 export function CheckoutDrawer() {
   const { cart, totalPrice, clearCart } = useCartStore();
 
   const navigate = useNavigate();
+  const {role} = useAuthStore()
 
   return (
     <Drawer direction="right">
       <DrawerTrigger asChild>
-        <Button variant="outline" className="rounded-full" size={"icon-sm"}>
+        {["sales", "admin"].includes(role!) && <Button variant="outline" className="rounded-full" size={"icon-sm"} disabled={!["sales", "admin"].includes(role!)}>
           <ShoppingBasket />
-        </Button>
+        </Button>}
+        
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="flex flex-row items-center justify-between gap-1 flex-wrap">

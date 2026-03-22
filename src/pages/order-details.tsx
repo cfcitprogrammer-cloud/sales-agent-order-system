@@ -23,9 +23,9 @@ const statuses = [
 
 // Role visibility mapping
 const roleStatusMap: Record<string, string[]> = {
-  logistic: ["Pending", "Cancelled", "Reviewed", "Completed"],
-  agent: ["Cancelled"],
-  accounting: ["Cancelled", "Approved", "Rejected"],
+  logistic: ["Cancelled", "Reviewed", "Completed"],
+  sales: ["Cancelled"],
+  accounting: ["Cancelled", "Pending", "Approved", "Rejected"],
   admin: statuses,
 };
 
@@ -109,16 +109,18 @@ export default function OrderDetailsPage() {
     if (timestampField)
       updateData[timestampField] = new Date().toISOString() as any;
 
+
+    const tloading = toast.loading("Updating order status...")
     const { error } = await supabase
       .from("orders")
       .update(updateData)
       .eq("id", order.id);
 
     if (error) {
-      toast.error(error.message || "Failed to update status");
+      toast.error(error.message || "Failed to update status", {id: tloading});
     } else {
       setOrder({ ...order, ...updateData });
-      toast.success(`Order status updated to ${newStatus}`);
+      toast.success(`Order status updated to ${newStatus}`, {id: tloading});
     }
 
     setUpdatingStatus(false);
@@ -170,11 +172,26 @@ export default function OrderDetailsPage() {
   );
 
   const allowedStatuses = statuses.filter((status) => {
+    // 1. must be visible in UI
     if (!visibleStatuses.includes(status)) return false;
-    if (role === "logistic" && status === "Completed")
-      return order.status === "Approved";
+
+    // 2. must be allowed for role
+    const allowedForRole = roleStatusMap[role || ""] || [];
+    if (!allowedForRole.includes(status)) return false;
+
+    // 3. workflow rule (status transitions)
     const allowedNext = statusFlowMap[order.status] ?? [];
-    return allowedNext.includes(status) || order.status === status;
+    const isValidTransition =
+      allowedNext.includes(status) || order.status === status;
+
+    if (!isValidTransition) return false;
+
+    // 4. special business rule
+    if (role === "logistic" && status === "Completed") {
+      return order.status === "Approved";
+    }
+
+    return true;
   });
 
   return (

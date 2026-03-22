@@ -50,12 +50,12 @@ export default function OrdersTab() {
 
   return (
     <section className="space-y-4">
-      <header className="flex flex-wrap items-center justify-between gap-4">
+      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">Your Orders</h1>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-140">
           <Select onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-40 bg-white">
+            <SelectTrigger className="w-full sm:w-40 bg-white">
               <SelectValue placeholder="Filter Status" />
             </SelectTrigger>
             <SelectContent>
