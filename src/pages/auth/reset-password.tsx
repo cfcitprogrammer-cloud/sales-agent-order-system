@@ -33,6 +33,9 @@ export default function ResetPasswordPage() {
         toast.error(error.message);
       } else {
         navigate("/login", { replace: true });
+        toast.success(
+          "Password reset successful! Please log in with your new password.",
+        );
       }
     } catch (error: any) {
       if (error.message) {
@@ -47,18 +50,30 @@ export default function ResetPasswordPage() {
     <section className="h-screen w-screen flex justify-center items-center p-2">
       <Card>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-2">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <h1 className="text-lg font-semibold">Change Password</h1>
-            <Label>Email</Label>
+            <Label>New Password</Label>
             <Input
-              type="email"
-              placeholder="m@example.com"
+              type="password"
+              placeholder="Enter your new password"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
-            <Button className="w-full" disabled={isLoading}>
-              {isLoading ? <Spinner /> : "Request Change Password"}
+            <Label>Confirm New Password</Label>
+            <Input
+              type="password"
+              placeholder="Confirm your new password"
+              required
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+            <Button
+              size={"sm"}
+              className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+              disabled={isLoading}
+            >
+              {isLoading ? <Spinner /> : "Change Password"}
             </Button>
           </form>
         </CardContent>

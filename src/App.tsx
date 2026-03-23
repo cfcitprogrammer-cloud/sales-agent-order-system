@@ -1,5 +1,5 @@
 import "./App.css";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 import IndexPage from "./pages";
 import LoginPage from "./pages/auth/login";
@@ -9,6 +9,7 @@ import RequestChangePasswordPage from "./pages/auth/request-reset-password";
 import OrderDetailsPage from "./pages/order-details";
 
 import { ProtectedRoute } from "./pages/auth/protected-route-wrapper";
+import ResetPasswordPage from "./pages/auth/reset-password";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         }
       >
         <Route path="/:tab/:pageNumber" element={<IndexPage />} />
+        <Route path="/:tab/:viewType/:pageNumber" element={<IndexPage />} />
         <Route path="/order/details/:orderId" element={<OrderDetailsPage />} />
       </Route>
 
@@ -37,6 +39,9 @@ function App() {
         path="/pw/request-change"
         element={<RequestChangePasswordPage />}
       />
+      <Route path="/pw/reset" element={<ResetPasswordPage />} />
+
+      <Route path="/" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }

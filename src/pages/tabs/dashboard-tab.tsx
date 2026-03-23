@@ -92,7 +92,7 @@ export default function DashboardTab() {
                   outerRadius={80}
                   label
                 >
-                  {pieData.map((entry, index) => (
+                  {pieData.map((_, index) => (
                     <Cell key={index} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>

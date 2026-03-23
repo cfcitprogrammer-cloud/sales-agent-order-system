@@ -16,7 +16,11 @@ export default function AppTabs() {
     <Tabs
       value={initialTab}
       onValueChange={(tab) => {
-        navigate(`/${tab}/1`);
+        if (tab === "orders") {
+          navigate(`/orders/card-view/1`);
+        } else {
+          navigate(`/${tab}/1`);
+        }
       }}
       className="w-full mt-12"
     >

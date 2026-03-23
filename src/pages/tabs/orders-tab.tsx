@@ -32,9 +32,11 @@ const statusOptions = [
 
 export default function OrdersTab() {
   const navigate = useNavigate();
-  const { pageNumber = "1" } = useParams();
+  const { pageNumber = "1", viewType = "card-view" } = useParams();
 
-  const [view, setView] = useState<"card" | "table">("card");
+  const [view, setView] = useState<"card" | "table">(
+    viewType === "table-view" ? "table" : "card",
+  );
   const [statusFilter, setStatusFilter] = useState<string | undefined>();
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -83,7 +85,19 @@ export default function OrdersTab() {
             type="single"
             size="sm"
             value={view}
-            onValueChange={(val: "card" | "table") => setView(val)}
+            onValueChange={(val: "card" | "table") => {
+              if (!val) return;
+
+              setView(val);
+
+              navigate({
+                pathname: `/orders/${val}-view/1`,
+                search: createSearchParams({
+                  status: statusFilter ?? "",
+                  search: searchTerm ?? "",
+                }).toString(),
+              });
+            }}
             className="border rounded bg-white"
           >
             <ToggleGroupItem size="sm" value="card">

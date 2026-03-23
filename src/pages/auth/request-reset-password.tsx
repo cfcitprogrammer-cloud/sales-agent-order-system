@@ -18,7 +18,9 @@ export default function RequestChangePasswordPage() {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `https://cfcitprogrammer-cloud.github.io/sales-agent-order-system/pw/reset`,
+      });
 
       if (error) {
         toast.error(error.message);

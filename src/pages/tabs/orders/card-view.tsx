@@ -29,7 +29,7 @@ export default function CardView({
 }: CardViewProps) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
 
   const pageSize = 9;
 
@@ -76,7 +76,7 @@ export default function CardView({
 
   useEffect(() => {
     async function fetchOrders() {
-      setLoading(true)
+      setLoading(true);
 
       let query = supabase
         .from("orders")
@@ -84,29 +84,33 @@ export default function CardView({
         .order("id", { ascending: false })
         .range((page - 1) * pageSize, page * pageSize - 1);
 
-      if (statusFilter) query = query.eq("status", statusFilter);
+      if (statusFilter && statusFilter !== "All") {
+        query = query.eq("status", statusFilter);
+      }
       if (searchTerm) query = query.ilike("customer_name", `%${searchTerm}%`);
 
       const { data, count, error } = await query;
 
       if (error) {
         console.error(error);
-        setLoading(false)
+        setLoading(false);
         return;
       }
 
       setOrders(data || []);
       setTotalPages(Math.ceil((count ?? 0) / pageSize));
-      setLoading(false)
+      setLoading(false);
     }
 
     fetchOrders();
   }, [page, statusFilter, searchTerm]);
 
   if (loading) {
-    return <div className="w-full h-60 flex items-center justify-center">
-      <Spinner />
-    </div>
+    return (
+      <div className="w-full h-60 flex items-center justify-center">
+        <Spinner />
+      </div>
+    );
   }
 
   return (

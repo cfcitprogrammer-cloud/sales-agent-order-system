@@ -75,32 +75,34 @@ export default function TableView({
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [updatingIds, setUpdatingIds] = useState<number[]>([]);
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
   const pageSize = 10;
   const role = useAuthStore((state) => state.role);
 
   useEffect(() => {
     async function fetchOrders() {
-      setLoading(true)
+      setLoading(true);
       let query = supabase
         .from("orders")
         .select("*", { count: "exact" })
         .order("id", { ascending: false })
         .range((page - 1) * pageSize, page * pageSize - 1);
 
-      if (statusFilter) query = query.eq("status", statusFilter);
+      if (statusFilter && statusFilter !== "All") {
+        query = query.eq("status", statusFilter);
+      }
       if (searchTerm) query = query.ilike("customer_name", `%${searchTerm}%`);
 
       const { data, count, error } = await query;
       if (error) {
         toast.error(error.message);
-        setLoading(false)
+        setLoading(false);
         return;
       }
       setOrders(data || []);
       setTotalPages(Math.ceil((count ?? 0) / pageSize));
       setSelectedIds([]);
-      setLoading(false)
+      setLoading(false);
     }
 
     fetchOrders();
@@ -141,16 +143,18 @@ export default function TableView({
     if (timestampField)
       updateData[timestampField] = new Date().toISOString() as any;
 
-    const tloading = toast.loading("Updating order status...")
+    const tloading = toast.loading("Updating order status...");
     const { error } = await supabase
       .from("orders")
       .update(updateData)
       .eq("id", order.id);
 
     if (error) {
-      toast.error(error.message || "Failed to update status", {id: tloading});
+      toast.error(error.message || "Failed to update status", { id: tloading });
     } else {
-      toast.success(`Order #${order.id} updated to ${newStatus}`, {id: tloading});
+      toast.success(`Order #${order.id} updated to ${newStatus}`, {
+        id: tloading,
+      });
       setOrders((prev) =>
         prev.map((o) => (o.id === order.id ? { ...o, ...updateData } : o)),
       );
@@ -171,9 +175,11 @@ export default function TableView({
   };
 
   if (loading) {
-    return <div className="w-full h-60 flex items-center justify-center">
-      <Spinner />
-    </div>
+    return (
+      <div className="w-full h-60 flex items-center justify-center">
+        <Spinner />
+      </div>
+    );
   }
 
   return (
@@ -185,14 +191,7 @@ export default function TableView({
             <Button size="sm">Mass Actions ({selectedIds.length})</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            {[
-              "Pending",
-              "Cancelled",
-              "Reviewed",
-              "Approved",
-              "Rejected",
-              "Completed",
-            ]
+            {statuses
               .filter((s) => roleStatusMap[role!]?.includes(s))
               .map((status) => (
                 <DropdownMenuItem
@@ -208,90 +207,91 @@ export default function TableView({
 
       <div className="bg-white p-2 rounded">
         <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[50px]">
-              <Checkbox
-                checked={
-                  selectedIds.length === orders.length && orders.length > 0
-                }
-                onCheckedChange={(checked) =>
-                  setSelectedIds(checked ? orders.map((o) => o.id) : [])
-                }
-              />
-            </TableHead>
-            <TableHead>BP Code</TableHead>
-            <TableHead>Customer</TableHead>
-            <TableHead>Delivery Date</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[50px]">
+                <Checkbox
+                  checked={
+                    selectedIds.length === orders.length && orders.length > 0
+                  }
+                  onCheckedChange={(checked) =>
+                    setSelectedIds(checked ? orders.map((o) => o.id) : [])
+                  }
+                />
+              </TableHead>
+              <TableHead>BP Code</TableHead>
+              <TableHead>Customer</TableHead>
+              <TableHead>Delivery Date</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
 
-        <TableBody>
-          {orders.map((order) => {
-            const visibleStatuses = role ? (roleStatusMap[role] ?? []) : [];
-            return (
-              <TableRow key={order.id}>
-                <TableCell>
-                  <Checkbox
-                    checked={selectedIds.includes(order.id)}
-                    onCheckedChange={() => toggleSelection(order.id)}
-                  />
-                </TableCell>
-                <TableCell>{order.bp_code}</TableCell>
-                <TableCell>{order.customer_name}</TableCell>
-                <TableCell>{order.delivery_date ?? "N/A"}</TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={updatingIds.includes(order.id)}
-                      >
-                        {order.status}
-                        <ChevronDown />
+          <TableBody>
+            {orders.map((order) => {
+              const visibleStatuses = role ? (roleStatusMap[role] ?? []) : [];
+              return (
+                <TableRow key={order.id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedIds.includes(order.id)}
+                      onCheckedChange={() => toggleSelection(order.id)}
+                    />
+                  </TableCell>
+                  <TableCell>{order.bp_code}</TableCell>
+                  <TableCell>{order.customer_name}</TableCell>
+                  <TableCell>{order.delivery_date ?? "N/A"}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={updatingIds.includes(order.id)}
+                        >
+                          {order.status}
+                          <ChevronDown />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        {visibleStatuses
+                          .filter((status) => {
+                            const allowedStatuses =
+                              roleStatusMap[role || ""] || [];
+
+                            // check if status is allowed for role
+                            if (!allowedStatuses.includes(status)) return false;
+
+                            // additional rule for logistic "Completed"
+                            if (role === "logistic" && status === "Completed") {
+                              return order.status === "Approved";
+                            }
+
+                            return true;
+                          })
+                          .map((status) => (
+                            <DropdownMenuItem
+                              key={status}
+                              onClick={() => changeStatus(order, status)}
+                            >
+                              {status}
+                            </DropdownMenuItem>
+                          ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Link to={`/order/details/${order.id}`}>
+                      <Button size="sm" variant="outline">
+                        View
                       </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      {visibleStatuses
-                        .filter((status) => {
-                          const allowedStatuses = roleStatusMap[role || ""] || [];
-
-                          // check if status is allowed for role
-                          if (!allowedStatuses.includes(status)) return false;
-
-                          // additional rule for logistic "Completed"
-                          if (role === "logistic" && status === "Completed") {
-                            return order.status === "Approved";
-                          }
-
-                          return true;
-                        })
-                        .map((status) => (
-                          <DropdownMenuItem
-                            key={status}
-                            onClick={() => changeStatus(order, status)}
-                          >
-                            {status}
-                          </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Link to={`/order/details/${order.id}`}>
-                    <Button size="sm" variant="outline">
-                      View
-                    </Button>
-                  </Link>
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       </div>
 
       {/* Pagination */}

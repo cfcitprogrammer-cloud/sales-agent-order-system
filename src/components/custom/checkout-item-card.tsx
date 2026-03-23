@@ -1,14 +1,6 @@
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { Minus, Plus, X } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../ui/table";
 import { useState } from "react";
 import { useCartStore, type CartItem } from "@/stores/cart-store";
 

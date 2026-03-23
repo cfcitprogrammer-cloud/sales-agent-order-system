@@ -1,4 +1,4 @@
-import type { Product } from "@/db/types/product";
+import type { Product } from "@/db/types/product.type";
 
 interface CheckoutItemCard2Props {
   item: Product;
@@ -10,13 +10,11 @@ export default function CheckoutItemCard2({ item }: CheckoutItemCard2Props) {
       <figure className="w-12 h-12 overflow-hidden rounded-lg relative">
         <img
           src={item.img_src || ""}
-          alt={item.product_name}
+          alt={item.name}
           className="w-full h-full object-cover object-center text-xs"
         />
       </figure>
-      <h1>{item.product_name}</h1>
-
-      <p>{item.price * item.qty}</p>
+      <h1>{item.name}</h1>
     </div>
   );
 }

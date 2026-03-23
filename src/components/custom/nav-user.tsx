@@ -10,9 +10,11 @@ import {
 } from "../ui/dropdown-menu";
 import { useAuthStore } from "@/stores/auth-store";
 import { Cog, LogOut } from "lucide-react";
+import { useNavigate } from "react-router";
 
 export default function NavUser() {
   const { user, role, signOut } = useAuthStore();
+  const navigate = useNavigate();
 
   return (
     <DropdownMenu>
@@ -60,7 +62,10 @@ export default function NavUser() {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="text-xs" onClick={signOut}>
+          <DropdownMenuItem
+            className="text-xs"
+            onClick={() => navigate("/pw/request-change")}
+          >
             <Cog /> Change Password
           </DropdownMenuItem>
           <DropdownMenuItem className="text-xs" onClick={signOut}>

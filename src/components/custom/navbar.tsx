@@ -1,12 +1,10 @@
-import { LogOut, Menu, ReceiptText, Settings, ShoppingBag } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
+import { LogOut, Menu, ReceiptText, ShoppingBag } from "lucide-react";
+import { TabsList, TabsTrigger } from "../ui/tabs";
 import { Button } from "../ui/button";
-import Avatar from "boring-avatars";
 import NavUser from "./nav-user";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 
 export default function NavbarComponent() {

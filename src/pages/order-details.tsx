@@ -109,18 +109,17 @@ export default function OrderDetailsPage() {
     if (timestampField)
       updateData[timestampField] = new Date().toISOString() as any;
 
-
-    const tloading = toast.loading("Updating order status...")
+    const tloading = toast.loading("Updating order status...");
     const { error } = await supabase
       .from("orders")
       .update(updateData)
       .eq("id", order.id);
 
     if (error) {
-      toast.error(error.message || "Failed to update status", {id: tloading});
+      toast.error(error.message || "Failed to update status", { id: tloading });
     } else {
       setOrder({ ...order, ...updateData });
-      toast.success(`Order status updated to ${newStatus}`, {id: tloading});
+      toast.success(`Order status updated to ${newStatus}`, { id: tloading });
     }
 
     setUpdatingStatus(false);
@@ -166,10 +165,10 @@ export default function OrderDetailsPage() {
   if (loading) return <p className="p-6">Loading order details...</p>;
   if (!order) return <p className="p-6 text-red-600">Order not found</p>;
 
-  const totalPrice = order.order_products?.reduce(
-    (sum, item) => sum + item.price_at_order * item.qty,
-    0,
-  );
+  // const totalPrice = order.order_products?.reduce(
+  //   (sum, item) => sum + item.price_at_order * item.qty,
+  //   0,
+  // );
 
   const allowedStatuses = statuses.filter((status) => {
     // 1. must be visible in UI
