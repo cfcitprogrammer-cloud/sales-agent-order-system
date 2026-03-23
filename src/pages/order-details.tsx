@@ -231,6 +231,48 @@ export default function OrderDetailsPage() {
             <strong>Notes:</strong> {order.notes}
           </p>
         )}
+
+        {order.attachments && order.attachments.length > 0 && (
+          <div className="space-y-2">
+            <p>
+              <strong>Attachments:</strong>
+            </p>
+
+            <div className="flex flex-wrap gap-3">
+              {order.attachments.map((url, index) => {
+                const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(url);
+
+                return (
+                  <div
+                    key={index}
+                    className="border rounded p-2 w-32 flex flex-col items-center gap-2"
+                  >
+                    {isImage ? (
+                      <img
+                        src={url}
+                        alt={`attachment-${index}`}
+                        className="w-24 h-24 object-cover rounded"
+                      />
+                    ) : (
+                      <div className="text-xs text-center">📄 File</div>
+                    )}
+
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 underline"
+                    >
+                      <Button variant="link" size="sm">
+                        View
+                      </Button>
+                    </a>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       <Separator />

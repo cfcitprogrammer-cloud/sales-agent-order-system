@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "@/lib/supabase";
+import { useDropzone } from "react-dropzone";
 
 import {
   Form,
@@ -36,12 +37,14 @@ import { useNavigate } from "react-router-dom";
 import CustomAlertDialog from "../custom/dialogs/alert-dialog";
 import { Separator } from "../ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, X } from "lucide-react";
 import { Spinner } from "../ui/spinner";
 import { toast } from "sonner";
 
 type CheckoutFormProps = {
-  onSubmit: (values: CheckoutFormValues) => Promise<boolean>;
+  onSubmit: (
+    values: CheckoutFormValues & { attachments?: string[] },
+  ) => Promise<boolean>;
 };
 
 export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
@@ -60,6 +63,9 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
   const [loadingCustomers, setLoadingCustomers] = useState(false);
   const [error, setError] = useState("");
 
+  // 🔥 attachment state
+  const [files, setFiles] = useState<File[]>([]);
+
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
@@ -70,6 +76,7 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
       deliveryDate: "",
       notes: "",
       cart,
+      attachments: [],
     },
   });
 
@@ -94,15 +101,40 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
         .ilike("customer_name", `%${customerQuery}%`)
         .limit(5);
 
-      if (!error) {
-        setCustomerResults(data || []);
-      }
+      if (!error) setCustomerResults(data || []);
 
       setLoadingCustomers(false);
     }, 300);
 
     return () => clearTimeout(delayDebounce);
   }, [customerQuery]);
+
+  // 🔥 DROPZONE
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const validFiles: File[] = [];
+
+    acceptedFiles.forEach((file) => {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`${file.name} exceeds 5MB limit`);
+        return;
+      }
+      validFiles.push(file);
+    });
+
+    setFiles((prev) => [...prev, ...validFiles]);
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "image/*": [],
+      "application/pdf": [],
+    },
+  });
+
+  function removeFile(index: number) {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  }
 
   function clearCartAndBack() {
     clearCart();
@@ -118,7 +150,35 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
       <form
         onSubmit={form.handleSubmit(
           async (data) => {
-            const isSuccess = await onSubmit(data);
+            let uploadedUrls: string[] = [];
+
+            // 🔥 upload all files
+            for (const file of files) {
+              const fileName = `${Date.now()}-${file.name}`;
+
+              const { error: uploadError } = await supabase.storage
+                .from("attachments")
+                .upload(fileName, file);
+
+              if (uploadError) {
+                toast.error(`Failed: ${file.name}`);
+                return;
+              }
+
+              const { data: publicUrlData } = supabase.storage
+                .from("attachments")
+                .getPublicUrl(fileName);
+
+              uploadedUrls.push(publicUrlData.publicUrl);
+            }
+
+            console.log("Uploaded URLs:", uploadedUrls);
+
+            const isSuccess = await onSubmit({
+              ...data,
+              attachments: uploadedUrls,
+            });
+
             if (isSuccess) {
               navigate("/products/1", { replace: true });
               toast.success("Order placed successfully");
@@ -149,7 +209,7 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
             )}
           />
 
-          {/* 🔍 CUSTOMER SEARCH */}
+          {/* CUSTOMER SEARCH */}
           <FormField
             control={form.control}
             name="customerName"
@@ -163,12 +223,8 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
                         (c) => c.id === value,
                       );
 
-                      console.log("SELECTED:", selected); // 👈 debug
-
                       if (selected) {
-                        // ✅ Correct mapping
                         field.onChange(selected.customer_name);
-
                         form.setValue("street", selected.ship_to_street || "");
                         form.setValue("city", selected.ship_to_city || "");
                         form.setValue("bpCode", selected.bp_code || "");
@@ -189,11 +245,9 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
                         {loadingCustomers && (
                           <p className="p-2 text-sm">Searching...</p>
                         )}
-
                         {!loadingCustomers && customerResults.length === 0 && (
                           <ComboboxEmpty>No customers found</ComboboxEmpty>
                         )}
-
                         {customerResults.map((customer) => (
                           <ComboboxItem key={customer.id} value={customer.id}>
                             {customer.customer_name}
@@ -263,6 +317,58 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
               </FormItem>
             )}
           />
+
+          {/* 🔥 ATTACHMENTS */}
+          <div>
+            <FormLabel>Attachments</FormLabel>
+
+            <div
+              {...getRootProps()}
+              className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer ${
+                isDragActive ? "bg-amber-100" : ""
+              }`}
+            >
+              <input {...getInputProps()} />
+              <p className="text-sm">
+                Drag & drop files here, or click to select
+              </p>
+              <p className="text-xs text-gray-500">
+                (PDF, JPG, PNG • Max 5MB each)
+              </p>
+            </div>
+
+            {/* Preview */}
+            <div className="mt-2 space-y-2">
+              {files.map((file, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between border p-2 rounded"
+                >
+                  <div className="flex items-center gap-2">
+                    {file.type.startsWith("image/") ? (
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt="preview"
+                        className="w-10 h-10 object-cover rounded"
+                      />
+                    ) : (
+                      <span className="text-xs">📄</span>
+                    )}
+                    <span className="text-sm">{file.name}</span>
+                  </div>
+
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => removeFile(index)}
+                  >
+                    <X size={16} />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* RIGHT */}

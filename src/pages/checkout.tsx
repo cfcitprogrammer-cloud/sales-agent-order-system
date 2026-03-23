@@ -36,6 +36,7 @@ export default function CheckoutPage() {
               ? new Date(values.deliveryDate).toISOString().split("T")[0]
               : null,
           notes: values.notes ?? null,
+          attachments: values.attachments ?? null,
           status: "Pending",
           user_id: user?.id ?? null, // optional
         },

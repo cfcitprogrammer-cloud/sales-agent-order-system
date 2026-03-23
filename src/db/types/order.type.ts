@@ -10,6 +10,7 @@ export type Order = {
   notes: string | null;
   status: string;
   created_at: string;
+  attachments: string[] | null;
 
   // Add order_products
   order_products?: OrderProducts[];

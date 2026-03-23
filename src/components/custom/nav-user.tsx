@@ -73,7 +73,7 @@ export default function NavUser() {
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuLabel className="text-xs">
-            Version 1.0.0
+            Version 1.2.0
           </DropdownMenuLabel>
         </DropdownMenuGroup>
       </DropdownMenuContent>
