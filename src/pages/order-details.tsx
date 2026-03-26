@@ -11,6 +11,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import type { Order } from "@/db/types/order.type";
 import OrderTimeline from "@/components/custom/order-timeline";
 import * as XLSX from "xlsx";
+import { notifyViaEmail } from "@/lib/email-notifier";
 
 const statuses = [
   "Pending",
@@ -118,6 +119,10 @@ export default function OrderDetailsPage() {
     if (error) {
       toast.error(error.message || "Failed to update status", { id: tloading });
     } else {
+      if (updateData.status === "Reviewed") {
+        notifyViaEmail(order, "accounting");
+      }
+
       setOrder({ ...order, ...updateData });
       toast.success(`Order status updated to ${newStatus}`, { id: tloading });
     }
