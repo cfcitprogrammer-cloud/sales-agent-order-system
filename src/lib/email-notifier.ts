@@ -1,7 +1,7 @@
 import type { Order } from "@/db/types/order.type";
 
 const GOOGLE_APPS_SCRIPT_WEBHOOK_URL =
-  "https://script.google.com/macros/s/AKfycbw6TkCrsBual5vVUzmg_JmxmCl4tXm9yFfUm5Xt0X091bN7CtoNSBBx1hrVGGP6_4lO/exec";
+  "https://script.google.com/macros/s/AKfycbzj8XHGnM-SHjtyqtKrod8Thi3rTfHtB0_oyAnKU5eDs5m-MdRmOUZIn0aXkL56X1g2/exec";
 
 export function notifyViaEmail(order: Order, action: string) {
   const data = JSON.stringify({
