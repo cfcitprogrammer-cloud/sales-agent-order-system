@@ -72,7 +72,7 @@ export function AddToCartDrawer() {
             <DrawerTitle>{currentProduct?.name}</DrawerTitle>
             <DrawerDescription>
               {selectedVariant
-                ? `${selectedVariant.sku} - ${selectedVariant.alias}`
+                ? `${selectedVariant.sku} - ${selectedVariant.alias} [${selectedVariant.uom}]`
                 : `Select a variant`}
             </DrawerDescription>
           </div>
@@ -99,7 +99,7 @@ export function AddToCartDrawer() {
               <SelectGroup>
                 {currentProduct?.product_variant?.map((variant) => (
                   <SelectItem key={variant.id} value={variant.id.toString()}>
-                    {variant.alias}
+                    {variant.alias} [{variant.uom}]
                   </SelectItem>
                 ))}
               </SelectGroup>

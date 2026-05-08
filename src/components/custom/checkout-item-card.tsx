@@ -45,7 +45,9 @@ export default function CheckoutItemCard({
 
           <div>
             <h1 className="text-xs font-semibold">{item.product_name}</h1>
-            <p className="text-xs">{item.variant_alias}</p>
+            <p className="text-xs">
+              {item.variant_alias} [{item.uom}]
+            </p>
 
             {/* <p>P{item.price || 0}</p> */}
           </div>
