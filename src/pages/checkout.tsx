@@ -42,6 +42,7 @@ export default function CheckoutPage() {
             notes: values.notes ?? null,
             attachments: values.attachments ?? null,
             status: "Pending",
+            order_by: user?.user_metadata?.full_name,
             user_id: user?.id ?? null, // optional
           },
           items_data: cart.map((item) => ({

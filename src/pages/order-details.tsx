@@ -231,6 +231,9 @@ export default function OrderDetailsPage() {
         <p>
           <strong>Status:</strong> {order.status}
         </p>
+        <p>
+          <strong>Order By:</strong> {order.order_by}
+        </p>
         {order.notes && (
           <p>
             <strong>Notes:</strong> {order.notes}

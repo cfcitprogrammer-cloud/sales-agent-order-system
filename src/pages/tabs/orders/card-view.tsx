@@ -80,7 +80,15 @@ export default function CardView({
 
       let query = supabase
         .from("orders")
-        .select("*", { count: "exact" })
+        .select(
+          `
+      *,
+      order_products (
+        *
+      )
+    `,
+          { count: "exact" },
+        )
         .order("id", { ascending: false })
         .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -178,18 +186,30 @@ export default function CardView({
                 </div>
 
                 <div className="border-t pt-2 space-y-2">
-                  {order.order_products?.map((item: any, i: number) => (
-                    <div key={i} className="flex justify-between">
-                      <span>{item.name}</span>
-                      <span className="text-xs">×{item.qty}</span>
-                    </div>
-                  ))}
+                  {order.order_products
+                    ?.slice(0, 3)
+                    .map((item: any, i: number) => (
+                      <div key={i} className="flex justify-between">
+                        <span>{item.product_name}</span>
+                        <span className="text-xs">×{item.qty}</span>
+                      </div>
+                    ))}
+
+                  {order.order_products && order.order_products.length > 3 && (
+                    <p className="text-xs text-muted-foreground italic pt-1">
+                      + {order.order_products.length - 3} more items...
+                    </p>
+                  )}
 
                   {order.notes && (
                     <div className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
                       Notes: {order.notes}
                     </div>
                   )}
+
+                  <div className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+                    Order By: {order.order_by}
+                  </div>
                 </div>
 
                 {/* DELIVERY PROGRESS */}
