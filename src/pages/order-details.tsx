@@ -13,14 +13,7 @@ import OrderTimeline from "@/components/custom/order-timeline";
 import * as XLSX from "xlsx";
 import { notifyViaEmail } from "@/lib/email-notifier";
 
-const statuses = [
-  "Pending",
-  "Cancelled",
-  "Reviewed",
-  "Approved",
-  "Rejected",
-  "Completed",
-];
+const statuses = ["Pending", "Cancelled", "Approved", "Rejected", "Completed"];
 
 // Role visibility mapping
 const roleStatusMap: Record<string, string[]> = {
@@ -34,7 +27,6 @@ const roleStatusMap: Record<string, string[]> = {
 const statusTimestampFieldMap: Record<string, keyof Order> = {
   Pending: "pending_at",
   Cancelled: "cancelled_at",
-  Reviewed: "reviewed_at",
   Approved: "approved_at",
   Rejected: "rejected_at",
   Completed: "completed_at",
@@ -42,9 +34,8 @@ const statusTimestampFieldMap: Record<string, keyof Order> = {
 
 // Status transition flow
 const statusFlowMap: Record<string, string[]> = {
-  Pending: ["Reviewed", "Cancelled"],
+  Pending: ["Approved", "Rejected"],
   Cancelled: [],
-  Reviewed: ["Approved", "Rejected"],
   Approved: ["Completed"],
   Rejected: [],
   Completed: [],
@@ -119,8 +110,8 @@ export default function OrderDetailsPage() {
     if (error) {
       toast.error(error.message || "Failed to update status", { id: tloading });
     } else {
-      if (updateData.status === "Reviewed") {
-        notifyViaEmail(order, "accounting");
+      if (updateData.status === "Approved") {
+        notifyViaEmail(order, "logistics");
       }
 
       setOrder({ ...order, ...updateData });

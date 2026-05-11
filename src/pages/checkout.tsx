@@ -64,7 +64,7 @@ export default function CheckoutPage() {
       }
 
       const newOrder = mapToOrder(values, newOrderId);
-      notifyViaEmail(newOrder, "logistics");
+      notifyViaEmail(newOrder, "accounting");
       toast.dismiss(t);
       toast.success("Order created successfully");
       clearCart();
