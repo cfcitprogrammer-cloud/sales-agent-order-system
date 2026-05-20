@@ -20,7 +20,6 @@ import { useAuthStore } from "@/stores/auth-store";
 
 export function CheckoutDrawer() {
   const { cart, clearCart } = useCartStore();
-
   const navigate = useNavigate();
   const { role } = useAuthStore();
 
@@ -38,38 +37,45 @@ export function CheckoutDrawer() {
           </Button>
         )}
       </DrawerTrigger>
-      <DrawerContent>
-        <DrawerHeader className="flex flex-row items-center justify-between gap-1 flex-wrap">
+
+      {/* 
+        FIX 1: Added 'h-full' and 'flex flex-col' to the content. 
+        'max-w-md' or similar helps if it's a side drawer. 
+      */}
+      <DrawerContent className="h-full flex flex-col fixed right-0 top-0 w-[400px] rounded-none">
+        <DrawerHeader className="flex flex-row items-center justify-between gap-1 flex-wrap shrink-0">
           <DrawerTitle>Your Order</DrawerTitle>
           {/* <DrawerTitle>Order {generateCartId()}</DrawerTitle> */}
           <DrawerDescription>{formatDateTime()}</DrawerDescription>
         </DrawerHeader>
-        <div className="overflow-hidden w-full">
-          <div>
-            <div className="px-4">
-              <div className="flex items-center justify-between gap-1 mb-2">
-                <p className="text-sm font-semibold">Your Cart</p>
 
-                <p className="text-xs">Total: {cart.length}</p>
+        {/* 
+          FIX 2: This is the scrollable area. 
+          'flex-1' grows to fill space, 'overflow-y-auto' handles the scroll.
+        */}
+        <div className="flex-1 overflow-y-auto px-4 py-2">
+          <div className="flex items-center justify-between gap-1 mb-4">
+            <p className="text-sm font-semibold">Your Cart</p>
+            <p className="text-xs">Total: {cart.length}</p>
+          </div>
+
+          <div className="space-y-2">
+            {cart.length === 0 && (
+              <div className="text-center py-10 text-gray-500">
+                <p className="text-lg font-medium">Cart is empty</p>
+                <p className="text-sm">Add items to start checkout</p>
               </div>
+            )}
 
-              <div className="no-scrollbar overflow-y-auto space-y-2">
-                {cart.length === 0 && (
-                  <div className="text-center py-10 text-gray-500">
-                    <p className="text-lg font-medium">Cart is empty</p>
-                    <p className="text-sm">Add items to start checkout</p>
-                  </div>
-                )}
-
-                {cart.map((item) => (
-                  <CheckoutItemCard key={item.cart_id} item={item} />
-                ))}
-              </div>
-            </div>
+            {cart.map((item) => (
+              <CheckoutItemCard key={item.cart_id} item={item} />
+            ))}
           </div>
         </div>
-        <DrawerFooter>
-          <Separator />
+
+        {/* FIX 3: 'shrink-0' ensures the footer doesn't get squashed */}
+        <DrawerFooter className="shrink-0 border-t">
+          <Separator className="mb-2" />
           {/* <div className="text-sm">
             <h2 className="font-semibold">Payment Summary</h2>
             <div className="flex justify-between items-center gap-1">

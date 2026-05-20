@@ -16,7 +16,6 @@ export default function CheckoutPage() {
 
   // Handles form submission and sends order + items to Supabase
   async function handleOrderSubmit(values: CheckoutFormValues) {
-    console.log("HEY");
     if (cart.length === 0) {
       toast.error("Your cart is empty");
       return false;
@@ -42,7 +41,7 @@ export default function CheckoutPage() {
             notes: values.notes ?? null,
             attachments: values.attachments ?? null,
             status: "Pending",
-            order_by: user?.user_metadata?.full_name,
+            order_by: values.user_name,
             user_id: user?.id ?? null, // optional
           },
           items_data: cart.map((item) => ({

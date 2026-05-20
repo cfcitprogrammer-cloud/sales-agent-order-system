@@ -21,6 +21,9 @@ export type Order = {
   approved_at: string | null;
   rejected_at: string | null;
   completed_at: string | null;
+  hold_at: string | null;
 
   order_by: string;
+
+  hold_reason: string;
 };

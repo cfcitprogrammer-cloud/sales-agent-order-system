@@ -9,6 +9,7 @@ export const checkoutSchema = z.object({
   deliveryDate: z.string().min(1, "Delivery date is required"), // maps to delivery_date
   notes: z.string().optional(),
   attachments: z.array(z.string()).optional(),
+  user_name: z.string().optional(),
 
   // Cart items must be non-empty and match CartItem
   cart: z

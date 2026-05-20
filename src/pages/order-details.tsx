@@ -1,5 +1,14 @@
 "use client";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
@@ -13,13 +22,20 @@ import OrderTimeline from "@/components/custom/order-timeline";
 import * as XLSX from "xlsx";
 import { notifyViaEmail } from "@/lib/email-notifier";
 
-const statuses = ["Pending", "Cancelled", "Approved", "Rejected", "Completed"];
+const statuses = [
+  "Pending",
+  "Cancelled",
+  "Approved",
+  "Rejected",
+  "Completed",
+  "On-Hold",
+];
 
 // Role visibility mapping
 const roleStatusMap: Record<string, string[]> = {
-  logistic: ["Cancelled", "Reviewed", "Completed"],
+  logistic: ["Cancelled", "Completed"],
   sales: ["Cancelled"],
-  accounting: ["Cancelled", "Pending", "Approved", "Rejected"],
+  accounting: ["Cancelled", "Pending", "Approved", "Rejected", "On-Hold"],
   admin: statuses,
 };
 
@@ -30,18 +46,23 @@ const statusTimestampFieldMap: Record<string, keyof Order> = {
   Approved: "approved_at",
   Rejected: "rejected_at",
   Completed: "completed_at",
+  "On-Hold": "hold_at",
 };
 
 // Status transition flow
 const statusFlowMap: Record<string, string[]> = {
-  Pending: ["Approved", "Rejected"],
+  Pending: ["Approved", "Rejected", "On-Hold"],
   Cancelled: [],
   Approved: ["Completed"],
   Rejected: [],
   Completed: [],
+  "On-Hold": ["Approved", "Rejected"],
 };
 
 export default function OrderDetailsPage() {
+  const [isOnHoldModalOpen, setIsOnHoldModalOpen] = useState(false);
+  const [holdRemarks, setHoldRemarks] = useState("");
+
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
   const role = useAuthStore((state) => state.role);
@@ -91,17 +112,25 @@ export default function OrderDetailsPage() {
     fetchOrder();
   }, [orderId]);
 
-  const changeStatus = async (newStatus: string) => {
+  const changeStatus = async (newStatus: string, remarks?: string) => {
     if (!order) return;
     setUpdatingStatus(true);
 
     const timestampField = statusTimestampFieldMap[newStatus];
 
-    const updateData: Partial<Order> = { status: newStatus };
-    if (timestampField)
-      updateData[timestampField] = new Date().toISOString() as any;
+    // Prepare update data
+    const updateData: Partial<Order> = {
+      status: newStatus,
+      // Assuming your DB has a 'notes' or 'hold_reason' column
+      hold_reason: remarks,
+    };
 
-    const tloading = toast.loading("Updating order status...");
+    if (timestampField) {
+      updateData[timestampField] = new Date().toISOString() as any;
+    }
+
+    const tloading = toast.loading(`Updating order to ${newStatus}...`);
+
     const { error } = await supabase
       .from("orders")
       .update(updateData)
@@ -110,12 +139,14 @@ export default function OrderDetailsPage() {
     if (error) {
       toast.error(error.message || "Failed to update status", { id: tloading });
     } else {
-      if (updateData.status === "Approved") {
+      if (newStatus === "Approved") {
+        console.log("APPROVED");
         notifyViaEmail(order, "logistics");
       }
-
       setOrder({ ...order, ...updateData });
       toast.success(`Order status updated to ${newStatus}`, { id: tloading });
+      setIsOnHoldModalOpen(false); // Close modal if it was open
+      setHoldRemarks(""); // Clear remarks
     }
 
     setUpdatingStatus(false);
@@ -231,6 +262,12 @@ export default function OrderDetailsPage() {
           </p>
         )}
 
+        {order.hold_at && (
+          <p>
+            <strong>On-Hold Reason:</strong> {order.hold_reason || "na"}
+          </p>
+        )}
+
         {order.attachments && order.attachments.length > 0 && (
           <div className="space-y-2">
             <p>
@@ -285,7 +322,13 @@ export default function OrderDetailsPage() {
               size={"sm"}
               key={status}
               variant={order.status === status ? "default" : "outline"}
-              onClick={() => changeStatus(status)}
+              onClick={() => {
+                if (status === "On-Hold") {
+                  setIsOnHoldModalOpen(true);
+                } else {
+                  changeStatus(status);
+                }
+              }}
               disabled={updatingStatus || order.status === status}
             >
               {status}
@@ -339,6 +382,34 @@ export default function OrderDetailsPage() {
       <Separator />
 
       <OrderTimeline order={order} />
+
+      {/* modal */}
+
+      <Dialog open={isOnHoldModalOpen} onOpenChange={setIsOnHoldModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reason for On-Hold</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Textarea
+              placeholder="Enter remarks here..."
+              value={holdRemarks}
+              onChange={(e) => setHoldRemarks(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsOnHoldModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              disabled={!holdRemarks.trim() || updatingStatus}
+              onClick={() => changeStatus("On-Hold", holdRemarks)}
+            >
+              Confirm On-Hold
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

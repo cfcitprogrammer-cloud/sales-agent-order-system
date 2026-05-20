@@ -40,6 +40,7 @@ import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { AlertCircle, X } from "lucide-react";
 import { Spinner } from "../ui/spinner";
 import { toast } from "sonner";
+import { useAuthStore } from "@/stores/auth-store";
 
 type CheckoutFormProps = {
   onSubmit: (
@@ -57,6 +58,7 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
   } = useCartStore();
 
   const navigate = useNavigate();
+  const { user } = useAuthStore();
 
   const [customerQuery, setCustomerQuery] = useState("");
   const [customerResults, setCustomerResults] = useState<any[]>([]);
@@ -177,6 +179,7 @@ export function CheckoutForm({ onSubmit }: CheckoutFormProps) {
             const isSuccess = await onSubmit({
               ...data,
               attachments: uploadedUrls,
+              user_name: user?.user_metadata.name,
             });
 
             if (isSuccess) {

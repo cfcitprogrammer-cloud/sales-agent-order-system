@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Spinner } from "@/components/ui/spinner";
 import { ChevronDown } from "lucide-react";
+import { notifyViaEmail } from "@/lib/email-notifier";
 
 interface TableViewProps {
   page: number;
@@ -152,6 +153,10 @@ export default function TableView({
     if (error) {
       toast.error(error.message || "Failed to update status", { id: tloading });
     } else {
+      if (newStatus === "Approved") {
+        console.log("APPROVED");
+        notifyViaEmail(order, "logistics");
+      }
       toast.success(`Order #${order.id} updated to ${newStatus}`, {
         id: tloading,
       });

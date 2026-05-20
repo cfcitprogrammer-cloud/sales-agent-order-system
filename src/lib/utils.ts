@@ -55,7 +55,7 @@ export function mapToOrder(data: any, orderId: number): Order {
     customer_name: data.customerName,
     delivery_date: data.deliveryDate ?? null,
     status: "Pending",
-    order_by: data.order_by,
+    order_by: data.user_name,
 
     order_products: (data.cart || []).map((item: any) => ({
       id: 0,
@@ -81,6 +81,8 @@ export function mapToOrder(data: any, orderId: number): Order {
     rejected_at: null,
     cancelled_at: null,
     completed_at: null,
+    hold_at: null,
+    hold_reason: "",
 
     created_at: "",
   };

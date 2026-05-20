@@ -1,5 +1,12 @@
 // components/OrderTimeline.tsx
-import { Clock, CheckCircle2, XCircle, Truck, FileCheck } from "lucide-react";
+import {
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Truck,
+  FileCheck,
+  StopCircle,
+} from "lucide-react";
 import type { Order } from "@/db/types/order.type";
 
 interface Props {
@@ -43,6 +50,12 @@ export default function OrderTimeline({ order }: Props) {
       label: "Order Completed",
       timestamp: order.completed_at,
       icon: Truck,
+    },
+    {
+      status: "On-Hold",
+      label: "On-Hold by Accounting",
+      timestamp: order.hold_at,
+      icon: StopCircle,
     },
   ];
 
