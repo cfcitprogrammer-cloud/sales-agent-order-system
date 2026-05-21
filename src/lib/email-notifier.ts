@@ -1,7 +1,7 @@
 import type { Order } from "@/db/types/order.type";
 
 const GOOGLE_APPS_SCRIPT_WEBHOOK_URL =
-  "https://script.google.com/macros/s/AKfycbwjdCY9ahMgCrsYM8KFjhvvd_vrqapi3G-V1soEH4X1LLiG0D3UPvVaTvlupQP3ykJl/exec";
+  "https://script.google.com/macros/s/AKfycbwTbR_yyjUXs2CzxPhORZ_-_YEZYE3ZYe-4UpEiiBpE2pMAtHjjddtWkVqRWEGx-IST/exec";
 
 export function notifyViaEmail(order: Order, action: string) {
   const data = JSON.stringify({
@@ -15,5 +15,7 @@ export function notifyViaEmail(order: Order, action: string) {
     action,
   });
 
+  console.log(data);
+  console.log(GOOGLE_APPS_SCRIPT_WEBHOOK_URL);
   navigator.sendBeacon(GOOGLE_APPS_SCRIPT_WEBHOOK_URL, data);
 }

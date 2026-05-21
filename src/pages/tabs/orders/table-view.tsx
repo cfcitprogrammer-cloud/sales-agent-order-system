@@ -85,7 +85,21 @@ export default function TableView({
       setLoading(true);
       let query = supabase
         .from("orders")
-        .select("*", { count: "exact" })
+        .select(
+          `
+      *,
+      order_products (
+        id,
+        product_name,
+        variant_name,
+        sku,
+        uom,
+        qty,
+        img_src
+      )
+    `,
+          { count: "exact" },
+        )
         .order("id", { ascending: false })
         .range((page - 1) * pageSize, page * pageSize - 1);
 
